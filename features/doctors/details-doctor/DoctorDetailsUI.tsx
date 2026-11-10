@@ -1,9 +1,8 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-
-import DoctorPatients from "./components/DoctorPatients"
+import type { Doctor, Patient } from "../data"
 import DoctorProfileCard from "./components/DoctorProfileCard"
-import type { Doctor, Patient } from "./data"
+import DoctorPatients from "./components/DoctorPatients"
 
 type DoctorDetailsUIProps = {
   doctor: Doctor

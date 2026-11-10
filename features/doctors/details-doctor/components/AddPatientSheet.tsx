@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/sheet"
 import { patientRecords, type PatientRecord } from "@/features/patients/data"
 import { formatAge, getAge } from "@/features/patients/utils"
-import type { Patient } from "../data"
-import { getInitials } from "../utils"
+import { Patient } from "../../data"
+import { getInitials } from "../../utils"
+
 
 export type NewPatient = Pick<
   Patient,
@@ -52,8 +53,6 @@ const AddPatientSheet = ({
     </SheetContent>
   </Sheet>
 )
-
-// ---------------------------------------------------------------------------
 
 const CREATE_PATIENT_HREF = "/dashboard/patients/create"
 

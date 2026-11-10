@@ -13,9 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import AddPatientSheet, { type NewPatient } from "./AddPatientSheet"
-import type { Doctor, Patient } from "../data"
-import { formatDate, getInitials } from "../utils"
+import { formatDate, getInitials } from "../../utils"
+import AddPatientSheet, { NewPatient } from "./AddPatientSheet"
+import { Doctor, Patient } from "../../data"
+// import AddPatientSheet, { type NewPatient } from "./AddPatientSheet"
+// import type { Doctor, Patient } from "../data"
+// import { formatDate, getInitials } from "../utils"
 
 type DoctorPatientsProps = {
   doctor: Doctor
