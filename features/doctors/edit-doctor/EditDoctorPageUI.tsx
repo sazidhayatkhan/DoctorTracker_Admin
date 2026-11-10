@@ -1,8 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-
 import EditDoctorForm from "./components/EditDoctorForm"
-import { getHospitals, type Doctor } from "./data"
+import { Doctor, getHospitals } from "../data"
 
 type EditDoctorPageUIProps = {
   doctor: Doctor

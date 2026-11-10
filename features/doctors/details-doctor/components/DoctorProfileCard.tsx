@@ -2,8 +2,8 @@ import Link from "next/link"
 import { Building2, CalendarDays, Mail, Pencil, Phone } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
-import { specializationStyles, type Doctor } from "../data"
-import { formatDate, getInitials } from "../utils"
+import { Doctor, specializationStyles } from "../../data"
+import { formatDate, getInitials } from "../../utils"
 
 type DoctorProfileCardProps = {
   doctor: Doctor

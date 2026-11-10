@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
+import { getHospitals } from "../data"
 import CreateDoctorForm from "./components/CreateDoctorForm"
-import { getHospitals } from "./data"
 
 const CreateDoctorPageUI = () => {
   const hospitals = getHospitals()

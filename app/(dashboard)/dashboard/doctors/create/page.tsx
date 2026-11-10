@@ -1,4 +1,4 @@
-import CreateDoctorPageUI from "@/features/doctors/CreateDoctorPageUI"
+import CreateDoctorPageUI from "@/features/doctors/create-doctor/CreateDoctorPageUI"
 import React from "react"
 
 const page = () => {
