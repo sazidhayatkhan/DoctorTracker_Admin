@@ -201,6 +201,16 @@ export const patients: Patient[] = [
     condition: "Fever",
     admittedAt: "2026-11-09",
   },
+  {
+    id: 10,
+    doctorId: 7,
+    name: "Karim Uddin",
+    age: 58,
+    gender: "Male",
+    phone: "+8801711000001",
+    condition: "Diabetes follow-up",
+    admittedAt: "2026-09-12",
+  },
 ]
 
 /** Unique hospitals already registered via doctors, alphabetical */

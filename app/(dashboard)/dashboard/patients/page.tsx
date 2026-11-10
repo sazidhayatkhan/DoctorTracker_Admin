@@ -1,11 +1,7 @@
-import React from 'react'
+import PatientsPageUI from "@/features/patients/PatientsPageUI"
 
 const page = () => {
-  return (
-    <div>
-      patient list page
-    </div>
-  )
+  return <PatientsPageUI />
 }
 
 export default page
