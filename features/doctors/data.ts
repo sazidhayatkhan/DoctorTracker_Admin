@@ -107,8 +107,6 @@ export type Patient = {
   admittedAt: string
 }
 
-export const genders: Patient["gender"][] = ["Male", "Female", "Other"]
-
 // TODO: replace with API data
 export const patients: Patient[] = [
   {
