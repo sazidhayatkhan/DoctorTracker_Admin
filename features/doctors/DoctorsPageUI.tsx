@@ -1,7 +1,9 @@
 import React from "react"
 import { Plus } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
+
+import { buttonVariants } from "@/components/ui/button"
 import DoctorTable from "./components/DoctorTable"
 import DoctorFilter from "./components/DoctorFilter"
 import DoctorStats from "./components/DoctorStats"
@@ -19,10 +21,16 @@ const DoctorsPageUI = () => {
           </p>
         </div>
 
-        <Button size="lg" className="w-full sm:w-auto">
+        <Link
+          href="/dashboard/doctors/create"
+          className={buttonVariants({
+            size: "lg",
+            className: "w-full sm:w-auto",
+          })}
+        >
           <Plus />
           Add Doctor
-        </Button>
+        </Link>
       </div>
 
       <DoctorStats doctors={doctors} />

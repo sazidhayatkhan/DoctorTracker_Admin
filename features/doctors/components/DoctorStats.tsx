@@ -50,7 +50,9 @@ const DoctorStats = ({ doctors }: DoctorStatsProps) => {
           key={label}
           className="flex items-center gap-4 border bg-card p-4 shadow-xs"
         >
-          <div className={`flex size-10 shrink-0 items-center justify-center ${accent}`}>
+          <div
+            className={`flex size-10 shrink-0 items-center justify-center ${accent}`}
+          >
             <Icon className="size-5" />
           </div>
           <div className="min-w-0">
