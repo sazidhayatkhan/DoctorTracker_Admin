@@ -95,3 +95,116 @@ export const doctors: Doctor[] = [
     createdAt: "2026-08-12",
   },
 ]
+
+export type Patient = {
+  id: number
+  doctorId: number
+  name: string
+  age: number
+  gender: "Male" | "Female" | "Other"
+  phone: string
+  condition: string
+  admittedAt: string
+}
+
+export const genders: Patient["gender"][] = ["Male", "Female", "Other"]
+
+// TODO: replace with API data
+export const patients: Patient[] = [
+  {
+    id: 1,
+    doctorId: 1,
+    name: "Karim Uddin",
+    age: 58,
+    gender: "Male",
+    phone: "+8801711000001",
+    condition: "Hypertension",
+    admittedAt: "2026-10-18",
+  },
+  {
+    id: 2,
+    doctorId: 1,
+    name: "Fatema Begum",
+    age: 64,
+    gender: "Female",
+    phone: "+8801711000002",
+    condition: "Arrhythmia",
+    admittedAt: "2026-10-25",
+  },
+  {
+    id: 3,
+    doctorId: 1,
+    name: "Arif Hossain",
+    age: 47,
+    gender: "Male",
+    phone: "+8801711000003",
+    condition: "Chest pain",
+    admittedAt: "2026-11-03",
+  },
+  {
+    id: 4,
+    doctorId: 2,
+    name: "Ayesha Siddiqua",
+    age: 35,
+    gender: "Female",
+    phone: "+8801711000004",
+    condition: "Migraine",
+    admittedAt: "2026-10-22",
+  },
+  {
+    id: 5,
+    doctorId: 2,
+    name: "Shafiq Ahmed",
+    age: 70,
+    gender: "Male",
+    phone: "+8801711000005",
+    condition: "Parkinson's",
+    admittedAt: "2026-11-01",
+  },
+  {
+    id: 6,
+    doctorId: 3,
+    name: "Mitu Akter",
+    age: 24,
+    gender: "Female",
+    phone: "+8801711000006",
+    condition: "Eczema",
+    admittedAt: "2026-11-06",
+  },
+  {
+    id: 7,
+    doctorId: 4,
+    name: "Rina Das",
+    age: 29,
+    gender: "Female",
+    phone: "+8801711000007",
+    condition: "Prenatal check-up",
+    admittedAt: "2026-11-04",
+  },
+  {
+    id: 8,
+    doctorId: 5,
+    name: "Jahid Islam",
+    age: 41,
+    gender: "Male",
+    phone: "+8801711000008",
+    condition: "Knee injury",
+    admittedAt: "2026-10-02",
+  },
+  {
+    id: 9,
+    doctorId: 6,
+    name: "Ayaan Khan",
+    age: 7,
+    gender: "Male",
+    phone: "+8801711000009",
+    condition: "Fever",
+    admittedAt: "2026-11-09",
+  },
+]
+
+/** Unique hospitals already registered via doctors, alphabetical */
+export const getHospitals = () =>
+  [...new Set(doctors.map((d) => d.hospital))].sort((a, b) =>
+    a.localeCompare(b)
+  )

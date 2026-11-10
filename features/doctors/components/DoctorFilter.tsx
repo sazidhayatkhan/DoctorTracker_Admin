@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select"
 import { specializations } from "../data"
 
-
 const DoctorFilter = () => {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
