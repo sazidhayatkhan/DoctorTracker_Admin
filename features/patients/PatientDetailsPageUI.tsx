@@ -15,6 +15,7 @@ import {
 import { buttonVariants } from "@/components/ui/button"
 import { formatDate, getInitials } from "@/features/doctors/utils"
 import AssignedDoctors from "./components/AssignedDoctors"
+import MobileCollapse from "./components/MobileCollapse"
 import PatientCard from "./components/PatientCard"
 import { formatAge } from "./utils"
 import { getAssignedDoctors, type PatientRecord } from "./data"
@@ -36,7 +37,6 @@ const PatientDetailsPageUI = ({ patient }: PatientDetailsPageUIProps) => {
         <ArrowLeft className="size-4" />
         Back to patients
       </Link>
-
 
       <div className="grid items-start gap-6 md:grid-cols-2">
         <aside className="md:sticky md:top-6 md:order-last">
@@ -71,42 +71,47 @@ const PatientDetailsPageUI = ({ patient }: PatientDetailsPageUIProps) => {
               </Link>
             </div>
 
-            {/* Details */}
-            <dl className="grid xl:grid-cols-2">
-              <DetailItem
-                icon={Hash}
-                label="Patient ID"
-                value={patient.id}
-                mono
-              />
-              <DetailItem
-                icon={CalendarDays}
-                label="Created"
-                value={formatDate(patient.createdAt)}
-              />
-              <DetailItem
-                icon={Cake}
-                label="Date of birth"
-                value={`${formatDate(patient.birthDate)} (${formatAge(patient.birthDate)})`}
-              />
-              <DetailItem
-                icon={UserRound}
-                label="Gender"
-                value={patient.gender}
-              />
-              <DetailItem icon={Phone} label="Phone" value={patient.phone} />
-              <DetailItem
-                icon={Mail}
-                label="Email"
-                value={patient.email || "—"}
-              />
-              <DetailItem
-                icon={MapPin}
-                label="Address"
-                value={patient.address}
-                className="xl:col-span-2"
-              />
-            </dl>
+            {/* Details — collapsed behind a toggle on mobile only */}
+            <MobileCollapse
+              showLabel="Show patient details"
+              hideLabel="Hide patient details"
+            >
+              <dl className="grid xl:grid-cols-2">
+                <DetailItem
+                  icon={Hash}
+                  label="Patient ID"
+                  value={patient.id}
+                  mono
+                />
+                <DetailItem
+                  icon={CalendarDays}
+                  label="Created"
+                  value={formatDate(patient.createdAt)}
+                />
+                <DetailItem
+                  icon={Cake}
+                  label="Date of birth"
+                  value={`${formatDate(patient.birthDate)} (${formatAge(patient.birthDate)})`}
+                />
+                <DetailItem
+                  icon={UserRound}
+                  label="Gender"
+                  value={patient.gender}
+                />
+                <DetailItem icon={Phone} label="Phone" value={patient.phone} />
+                <DetailItem
+                  icon={Mail}
+                  label="Email"
+                  value={patient.email || "—"}
+                />
+                <DetailItem
+                  icon={MapPin}
+                  label="Address"
+                  value={patient.address}
+                  className="xl:col-span-2"
+                />
+              </dl>
+            </MobileCollapse>
           </section>
 
           <AssignedDoctors assignments={assignments} />
