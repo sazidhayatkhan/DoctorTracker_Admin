@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 
-import DoctorDetailsUI from "@/features/doctors/DoctorDetailsUI"
+import DoctorDetailsUI from "@/features/doctors/details-doctor/DoctorDetailsUI"
 import { doctors, patients } from "@/features/doctors/data"
 
 export default async function DoctorDetailsPage({

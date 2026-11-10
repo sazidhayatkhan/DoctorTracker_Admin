@@ -5,8 +5,8 @@ import Link from "next/link"
 import { CheckCircle2 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
-import DoctorForm from "./DoctorForm"
-import type { Doctor } from "../data"
+import DoctorForm from "../../components/DoctorForm"
+import type { Doctor } from "../../data"
 
 type EditDoctorFormProps = {
   doctor: Doctor
