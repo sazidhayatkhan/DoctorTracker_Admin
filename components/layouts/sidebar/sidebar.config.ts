@@ -32,11 +32,6 @@ export const doctorNavigation: MenuItem[] = [
     url: "/dashboard/doctors/create",
     icon: "UserPlus",
   },
-  {
-    title: "Assign Patient",
-    url: "/dashboard/doctors/assign-patient",
-    icon: "ClipboardPlus",
-  },
 ];
 
 export const patientNavigation: MenuItem[] = [
