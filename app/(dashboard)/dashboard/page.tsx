@@ -1,11 +1,7 @@
-import React from 'react'
+import DashboardPageUI from "@/features/dashboard/DashboardPageUI"
 
 const page = () => {
-  return (
-    <div>
-      dashbaord
-    </div>
-  )
+  return <DashboardPageUI />
 }
 
 export default page
