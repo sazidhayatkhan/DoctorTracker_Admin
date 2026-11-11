@@ -5,11 +5,11 @@ import Link from "next/link"
 import { Loader2 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
-import { useUpdatePatient } from "../queries"
-import type { Patient } from "../schemas"
-import FormBanner from "./FormBanner"
-import PatientForm from "./PatientForm"
-import { applyServerErrors } from "./form-errors"
+import { useUpdatePatient } from "../../queries"
+import type { Patient } from "../../schemas"
+import FormBanner from "../../components/FormBanner"
+import PatientForm from "../../components/PatientForm"
+import { applyServerErrors } from "../../components/form-errors"
 
 type EditPatientFormProps = {
   patient: Patient

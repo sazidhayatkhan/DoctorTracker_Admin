@@ -1,4 +1,4 @@
-import CreatePatientPageUI from "@/features/patients/CreatePatientPageUI"
+import CreatePatientPageUI from "@/features/patients/create-patient/CreatePatientPageUI"
 
 const page = () => {
   return <CreatePatientPageUI />

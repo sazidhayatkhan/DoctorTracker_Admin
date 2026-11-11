@@ -4,8 +4,8 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 import EditPatientForm from "./components/EditPatientForm"
-import PatientLoader from "./components/PatientLoader"
-import { formatPatientCode } from "./utils"
+import PatientLoader from "../components/PatientLoader"
+import { formatPatientCode } from "../utils"
 
 type EditPatientPageUIProps = {
   id: string

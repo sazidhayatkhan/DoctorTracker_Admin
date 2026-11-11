@@ -1,8 +1,8 @@
 import { HeartPulse } from "lucide-react"
 
 import { formatDate, getInitials } from "@/features/doctors/utils"
-import type { Patient } from "../schemas"
-import { formatPatientCode } from "../utils"
+import type { Patient } from "../../schemas"
+import { formatPatientCode } from "../../utils"
 
 type PatientCardProps = {
   patient: Patient

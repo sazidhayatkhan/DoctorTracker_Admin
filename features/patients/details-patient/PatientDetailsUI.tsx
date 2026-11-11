@@ -19,15 +19,15 @@ import { formatDate, getInitials } from "@/features/doctors/utils"
 import AssignedDoctors from "./components/AssignedDoctors"
 import MobileCollapse from "./components/MobileCollapse"
 import PatientCard from "./components/PatientCard"
-import PatientLoader from "./components/PatientLoader"
-import type { Patient } from "./schemas"
-import { formatAge, formatPatientCode } from "./utils"
+import PatientLoader from "../components/PatientLoader"
+import type { Patient } from "../schemas"
+import { formatAge, formatPatientCode } from "../utils"
 
-type PatientDetailsPageUIProps = {
+type PatientDetailsUIProps = {
   id: string
 }
 
-const PatientDetailsPageUI = ({ id }: PatientDetailsPageUIProps) => (
+const PatientDetailsUI = ({ id }: PatientDetailsUIProps) => (
   <PatientLoader id={id}>
     {(patient) => <PatientDetails patient={patient} />}
   </PatientLoader>
@@ -157,4 +157,4 @@ const DetailItem = ({
   </div>
 )
 
-export default PatientDetailsPageUI
+export default PatientDetailsUI

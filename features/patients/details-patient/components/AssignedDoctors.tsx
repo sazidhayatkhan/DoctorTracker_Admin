@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { specializationStyles } from "@/features/doctors/data"
 import { formatDate, getInitials } from "@/features/doctors/utils"
 import { getErrorMessage } from "@/lib/api/errors"
-import { usePatientDoctors } from "../queries"
+import { usePatientDoctors } from "../../queries"
 
 type AssignedDoctorsProps = {
   patientId: string

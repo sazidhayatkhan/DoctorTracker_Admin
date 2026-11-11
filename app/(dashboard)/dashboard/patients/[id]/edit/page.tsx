@@ -1,4 +1,4 @@
-import EditPatientPageUI from "@/features/patients/EditPatientPageUI"
+import EditPatientPageUI from "@/features/patients/edit-patient/EditPatientPageUI"
 
 export default async function EditPatientPage({
   params,

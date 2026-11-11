@@ -5,12 +5,12 @@ import Link from "next/link"
 import { Loader2 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
-import { useCreatePatient } from "../queries"
-import type { Patient } from "../schemas"
-import { formatPatientCode } from "../utils"
-import FormBanner from "./FormBanner"
-import PatientForm from "./PatientForm"
-import { applyServerErrors } from "./form-errors"
+import { useCreatePatient } from "../../queries"
+import type { Patient } from "../../schemas"
+import { formatPatientCode } from "../../utils"
+import FormBanner from "../../components/FormBanner"
+import PatientForm from "../../components/PatientForm"
+import { applyServerErrors } from "../../components/form-errors"
 
 const CreatePatientForm = () => {
   const createPatient = useCreatePatient()

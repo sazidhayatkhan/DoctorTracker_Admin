@@ -1,4 +1,4 @@
-import PatientDetailsPageUI from "@/features/patients/PatientDetailsPageUI"
+import PatientDetailsUI from "@/features/patients/details-patient/PatientDetailsUI"
 
 export default async function PatientDetailsPage({
   params,
@@ -7,5 +7,5 @@ export default async function PatientDetailsPage({
 }) {
   const { id } = await params
 
-  return <PatientDetailsPageUI id={id} />
+  return <PatientDetailsUI id={id} />
 }
