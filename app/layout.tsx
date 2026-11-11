@@ -1,18 +1,33 @@
+import type { Metadata } from "next"
 import { Geist, Geist_Mono, Outfit, Oxanium } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Providers from "@/components/providers"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-const oxaniumHeading = Oxanium({subsets:['latin'],variable:'--font-heading'});
+const oxaniumHeading = Oxanium({
+  subsets: ["latin"],
+  variable: "--font-heading",
+})
 
-const outfit = Outfit({subsets:['latin'],variable:'--font-sans'})
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+/** Each route sets `title`; the template adds the app name, e.g. "Doctors | Doctor Tracker" */
+export const metadata: Metadata = {
+  title: {
+    default: "Doctor Tracker",
+    template: "%s | Doctor Tracker",
+  },
+  description:
+    "Track doctors, patients and their assignments across hospitals and specializations.",
+  applicationName: "Doctor Tracker",
+}
 
 export default function RootLayout({
   children,
@@ -23,7 +38,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", outfit.variable, oxaniumHeading.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        outfit.variable,
+        oxaniumHeading.variable
+      )}
     >
       <body>
         <ThemeProvider>

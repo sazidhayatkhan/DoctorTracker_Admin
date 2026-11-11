@@ -1,8 +1,11 @@
-"use client"
-
-import { specializationConfig } from "@/features/directory/config"
+import type { Metadata } from "next"
 import DirectoryPageUI from "@/features/directory/DirectoryPageUI"
 
-const page = () => <DirectoryPageUI config={specializationConfig} />
+export const metadata: Metadata = {
+  title: "Specializations",
+  description: "Manage the medical specializations doctors can have.",
+}
 
-export default page
+export default function SpecializationsPage() {
+  return <DirectoryPageUI kind="specialization" />
+}

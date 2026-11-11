@@ -1,7 +1,11 @@
+import type { Metadata } from "next"
 import DashboardPageUI from "@/features/dashboard/DashboardPageUI"
 
-const page = () => {
-  return <DashboardPageUI />
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Overview of doctors, patients, registrations and workload.",
 }
 
-export default page
+export default function DashboardPage() {
+  return <DashboardPageUI />
+}
