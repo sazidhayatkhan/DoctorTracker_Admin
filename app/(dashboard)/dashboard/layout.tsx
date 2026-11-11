@@ -16,7 +16,10 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <AuthGuard>
-      <SidebarProvider>
+      {/* Narrower than the 16rem default; fits the logo and menu labels */}
+      <SidebarProvider
+        style={{ "--sidebar-width": "13rem" } as React.CSSProperties}
+      >
         <SideBar />
 
         <SidebarInset className="min-h-svh min-w-0">
