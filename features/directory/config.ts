@@ -63,3 +63,8 @@ export const specializationConfig: DirectoryConfig = {
   },
   doctorFilter: "specializationId",
 }
+
+export const directoryConfigs: Record<DirectoryKind, DirectoryConfig> = {
+  hospital: hospitalConfig,
+  specialization: specializationConfig,
+}
