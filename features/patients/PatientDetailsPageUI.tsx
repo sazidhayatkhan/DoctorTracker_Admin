@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -17,15 +19,21 @@ import { formatDate, getInitials } from "@/features/doctors/utils"
 import AssignedDoctors from "./components/AssignedDoctors"
 import MobileCollapse from "./components/MobileCollapse"
 import PatientCard from "./components/PatientCard"
-import { formatAge } from "./utils"
-import { getAssignedDoctors, type PatientRecord } from "./data"
+import PatientLoader from "./components/PatientLoader"
+import type { Patient } from "./schemas"
+import { formatAge, formatPatientCode } from "./utils"
 
 type PatientDetailsPageUIProps = {
-  patient: PatientRecord
+  id: string
 }
 
-const PatientDetailsPageUI = ({ patient }: PatientDetailsPageUIProps) => {
-  const assignments = getAssignedDoctors(patient)
+const PatientDetailsPageUI = ({ id }: PatientDetailsPageUIProps) => (
+  <PatientLoader id={id}>
+    {(patient) => <PatientDetails patient={patient} />}
+  </PatientLoader>
+)
+
+const PatientDetails = ({ patient }: { patient: Patient }) => {
   const editHref = `/dashboard/patients/${patient.id}/edit`
 
   return (
@@ -55,7 +63,7 @@ const PatientDetailsPageUI = ({ patient }: PatientDetailsPageUIProps) => {
                   {patient.name}
                 </h1>
                 <p className="font-mono text-xs text-muted-foreground">
-                  {patient.id}
+                  {formatPatientCode(patient.patientCode)}
                 </p>
               </div>
               <Link
@@ -80,7 +88,7 @@ const PatientDetailsPageUI = ({ patient }: PatientDetailsPageUIProps) => {
                 <DetailItem
                   icon={Hash}
                   label="Patient ID"
-                  value={patient.id}
+                  value={formatPatientCode(patient.patientCode)}
                   mono
                 />
                 <DetailItem
@@ -114,7 +122,7 @@ const PatientDetailsPageUI = ({ patient }: PatientDetailsPageUIProps) => {
             </MobileCollapse>
           </section>
 
-          <AssignedDoctors assignments={assignments} />
+          <AssignedDoctors patientId={patient.id} />
         </div>
       </div>
     </div>

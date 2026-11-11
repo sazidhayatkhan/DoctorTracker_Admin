@@ -1,3 +1,6 @@
+/** How a patient's 4-digit code is shown everywhere, e.g. "#1001" */
+export const formatPatientCode = (code: number) => `#${code}`
+
 /** Today's date as yyyy-mm-dd (local time) — for <input type="date"> bounds */
 export const todayISO = () => {
   const d = new Date()

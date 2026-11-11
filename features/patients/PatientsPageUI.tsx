@@ -3,7 +3,6 @@ import { Plus } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
 import PatientTable from "./components/PatientTable"
-import { patientRecords } from "./data"
 
 const PatientsPageUI = () => {
   return (
@@ -28,7 +27,7 @@ const PatientsPageUI = () => {
         </Link>
       </div>
 
-      <PatientTable patients={patientRecords} />
+      <PatientTable />
     </div>
   )
 }

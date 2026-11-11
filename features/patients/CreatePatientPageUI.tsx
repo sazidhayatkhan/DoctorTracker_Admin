@@ -2,7 +2,6 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 import CreatePatientForm from "./components/CreatePatientForm"
-import { patientRecords } from "./data"
 
 const CreatePatientPageUI = () => {
   return (
@@ -23,7 +22,7 @@ const CreatePatientPageUI = () => {
         </div>
       </div>
 
-      <CreatePatientForm existingPhones={patientRecords.map((p) => p.phone)} />
+      <CreatePatientForm />
     </div>
   )
 }

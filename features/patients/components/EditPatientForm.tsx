@@ -2,18 +2,23 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
+import { useUpdatePatient } from "../queries"
+import type { Patient } from "../schemas"
+import FormBanner from "./FormBanner"
 import PatientForm from "./PatientForm"
-import type { PatientRecord } from "../data"
+import { applyServerErrors } from "./form-errors"
 
 type EditPatientFormProps = {
-  patient: PatientRecord
+  patient: Patient
 }
 
 const EditPatientForm = ({ patient }: EditPatientFormProps) => {
+  const updatePatient = useUpdatePatient(patient.id)
   const [isSaved, setIsSaved] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
   const detailsHref = `/dashboard/patients/${patient.id}`
 
   return (
@@ -28,22 +33,31 @@ const EditPatientForm = ({ patient }: EditPatientFormProps) => {
         address: patient.address,
       }}
       className="border bg-card shadow-xs"
-      onSubmit={() => {
-        // TODO: PATCH /patients/:id, then router.push(detailsHref)
-        setIsSaved(true)
+      disabled={updatePatient.isPending}
+      onSubmit={(data, { setErrors }) => {
+        setFormError(null)
+        setIsSaved(false)
+
+        updatePatient.mutate(data, {
+          onSuccess: () => setIsSaved(true),
+          onError: (error) => setFormError(applyServerErrors(error, setErrors)),
+        })
       }}
       header={
-        isSaved && (
-          <div className="flex items-center gap-2 border-b border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-            <CheckCircle2 className="size-4 shrink-0" />
-            <span className="flex-1">Changes saved successfully.</span>
-            <Link
-              href={detailsHref}
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              View patient
-            </Link>
-          </div>
+        formError ? (
+          <FormBanner tone="error">{formError}</FormBanner>
+        ) : (
+          isSaved && (
+            <FormBanner tone="success">
+              <span className="flex-1">Changes saved successfully.</span>
+              <Link
+                href={detailsHref}
+                className="font-medium underline-offset-4 hover:underline"
+              >
+                View patient
+              </Link>
+            </FormBanner>
+          )
         )
       }
       footer={
@@ -54,7 +68,8 @@ const EditPatientForm = ({ patient }: EditPatientFormProps) => {
           >
             Cancel
           </Link>
-          <Button type="submit" size="lg">
+          <Button type="submit" size="lg" disabled={updatePatient.isPending}>
+            {updatePatient.isPending && <Loader2 className="animate-spin" />}
             Save Changes
           </Button>
         </div>

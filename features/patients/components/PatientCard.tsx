@@ -1,10 +1,11 @@
 import { HeartPulse } from "lucide-react"
 
 import { formatDate, getInitials } from "@/features/doctors/utils"
-import type { PatientRecord } from "../data"
+import type { Patient } from "../schemas"
+import { formatPatientCode } from "../utils"
 
 type PatientCardProps = {
-  patient: PatientRecord
+  patient: Patient
   className?: string
 }
 
@@ -49,7 +50,7 @@ const PatientCard = ({ patient, className }: PatientCardProps) => (
             {patient.name}
           </p>
           <p className="font-mono text-sm tracking-widest opacity-90 @md:text-base">
-            {patient.id}
+            {formatPatientCode(patient.patientCode)}
           </p>
         </div>
       </div>

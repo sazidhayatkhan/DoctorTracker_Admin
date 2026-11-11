@@ -1,12 +1,14 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import {
+  AlertCircle,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   Eye,
+  Loader2,
   Mail,
   MapPin,
   Phone,
@@ -18,6 +20,7 @@ import {
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -27,10 +30,21 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatDate, getInitials } from "@/features/doctors/utils"
-import type { PatientRecord } from "../data"
-import { formatAge } from "../utils"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { getErrorMessage } from "@/lib/api/errors"
+import {
+  useDeletePatient,
+  usePatients,
+  usePrefetchPatient,
+} from "../queries"
+import type { Gender } from "../schemas"
+import { usePatientListStore } from "../store"
+import { formatAge, formatPatientCode } from "../utils"
 
 const ITEMS_PER_PAGE = 8
+
+/** Most page-number buttons shown at once */
+const PAGE_WINDOW = 5
 
 const headClass =
   "text-xs font-medium tracking-wide text-muted-foreground uppercase"
@@ -43,76 +57,81 @@ const col = {
   created: "hidden md:table-cell",
 }
 
-const genderStyles: Record<PatientRecord["gender"], string> = {
+const genderStyles: Record<Gender, string> = {
   Male: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
   Female: "bg-pink-500/10 text-pink-700 dark:text-pink-300",
   Other: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
 }
 
-type PatientTableProps = {
-  patients: PatientRecord[]
+/** Up to PAGE_WINDOW page numbers centred on the current page */
+const getPageWindow = (page: number, totalPages: number) => {
+  const size = Math.min(PAGE_WINDOW, totalPages)
+  const start = Math.min(
+    Math.max(1, page - Math.floor(size / 2)),
+    totalPages - size + 1
+  )
+  return Array.from({ length: size }, (_, i) => start + i)
 }
 
-const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
-  // TODO: replace local state with API calls (DELETE /patients/:id)
-  const [patients, setPatients] = useState(initialPatients)
-  const [confirmingId, setConfirmingId] = useState<string | null>(null)
-  const [query, setQuery] = useState("")
-  // ISO dates (yyyy-mm-dd) from <input type="date">; "" = no bound
-  const [fromDate, setFromDate] = useState("")
-  const [toDate, setToDate] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
+const PatientTable = () => {
+  const { search, from, to, page, setSearch, setFrom, setTo, setPage, clearFilters } =
+    usePatientListStore()
 
-  const hasFilters = !!(query.trim() || fromDate || toDate)
+  // Wait for typing to pause before querying the server.
+  const debouncedSearch = useDebouncedValue(search.trim(), 300)
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    const digits = q.replace(/\D/g, "")
-    return patients.filter((p) => {
-      // createdAt is yyyy-mm-dd, so string comparison is a date comparison
-      const created = p.createdAt.slice(0, 10)
-      if (fromDate && created < fromDate) return false
-      if (toDate && created > toDate) return false
-      if (!q) return true
-      return (
-        p.name.toLowerCase().includes(q) ||
-        p.email.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        (digits.length >= 3 && p.phone.replace(/\D/g, "").includes(digits))
-      )
+  const { data, isPending, isError, error, isFetching, isPlaceholderData, refetch } =
+    usePatients({
+      q: debouncedSearch.length >= 2 ? debouncedSearch : undefined,
+      from: from || undefined,
+      to: to || undefined,
+      page,
+      limit: ITEMS_PER_PAGE,
     })
-  }, [patients, query, fromDate, toDate])
 
-  const updateFilter = (setter: (v: string) => void) => (value: string) => {
-    setter(value)
-    setCurrentPage(1)
-  }
+  const deletePatient = useDeletePatient()
+  const prefetchPatient = usePrefetchPatient()
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const rows = data?.items ?? []
+  const total = data?.pagination.total ?? 0
+  const totalPages = data?.pagination.totalPages ?? 1
+  const start = (page - 1) * ITEMS_PER_PAGE
+  const hasFilters = !!(search.trim() || from || to)
+
+  // A delete can empty the last page: step back to the new last page.
+  useEffect(() => {
+    if (data && !isPlaceholderData && page > totalPages) setPage(totalPages)
+  }, [data, isPlaceholderData, page, totalPages, setPage])
 
   const handleDelete = (id: string) => {
-    setPatients((prev) => prev.filter((p) => p.id !== id))
     setConfirmingId(null)
+    setDeleteError(null)
+    deletePatient.mutate(id, {
+      onError: (err) =>
+        setDeleteError(`Couldn't delete patient: ${getErrorMessage(err)}`),
+    })
   }
-
-  const clearFilters = () => {
-    setQuery("")
-    setFromDate("")
-    setToDate("")
-    setCurrentPage(1)
-  }
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const page = Math.min(currentPage, totalPages)
-  const start = (page - 1) * ITEMS_PER_PAGE
-  const rows = filtered.slice(start, start + ITEMS_PER_PAGE)
 
   return (
     <section className="border bg-card shadow-xs">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 border-b p-3 sm:p-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <h2 className="text-sm font-semibold">All Patients</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            All Patients
+            {isFetching && !isPending && (
+              <Loader2
+                className="size-3.5 animate-spin text-muted-foreground"
+                aria-label="Updating"
+              />
+            )}
+          </h2>
           <p className="text-xs text-muted-foreground">
-            {filtered.length} of {patients.length} patients
+            {isPending
+              ? "Loading patients…"
+              : `${total}${hasFilters ? " matching" : ""} patient${total === 1 ? "" : "s"}`}
           </p>
         </div>
 
@@ -124,8 +143,8 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
               type="search"
               placeholder="Search by ID, name, phone or email..."
               aria-label="Search patients"
-              value={query}
-              onChange={(e) => updateFilter(setQuery)(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -135,16 +154,16 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
             <DateField
               id="patients-from"
               label="Created from"
-              value={fromDate}
-              max={toDate || undefined}
-              onChange={updateFilter(setFromDate)}
+              value={from}
+              max={to || undefined}
+              onChange={setFrom}
             />
             <DateField
               id="patients-to"
               label="Created to"
-              value={toDate}
-              min={fromDate || undefined}
-              onChange={updateFilter(setToDate)}
+              value={to}
+              min={from || undefined}
+              onChange={setTo}
             />
           </div>
 
@@ -160,6 +179,23 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
           )}
         </div>
       </div>
+
+      {deleteError && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 border-b border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive"
+        >
+          <AlertCircle className="size-4 shrink-0" />
+          <span className="flex-1">{deleteError}</span>
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            aria-label="Dismiss"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
 
       <Table className="text-sm">
         <TableHeader className="bg-muted/50">
@@ -185,8 +221,29 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
           </TableRow>
         </TableHeader>
 
-        <TableBody>
-          {rows.length > 0 ? (
+        <TableBody
+          className={isPlaceholderData ? "opacity-60 transition-opacity" : ""}
+        >
+          {isPending ? (
+            Array.from({ length: 5 }, (_, i) => <SkeletonRow key={i} />)
+          ) : isError ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={6} className="h-48">
+                <div className="flex flex-col items-center justify-center gap-2 text-center">
+                  <div className="flex size-12 items-center justify-center bg-destructive/10">
+                    <AlertCircle className="size-6 text-destructive" />
+                  </div>
+                  <p className="font-medium">Couldn&apos;t load patients</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getErrorMessage(error)}
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => refetch()}>
+                    Try again
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : rows.length > 0 ? (
             rows.map((p) => (
               <TableRow key={p.id}>
                 {/* Patient: avatar + name + ID (+ compact meta on small screens) */}
@@ -198,7 +255,7 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
                     <div className="min-w-0">
                       <p className="leading-tight font-medium">{p.name}</p>
                       <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                        {p.id}
+                        {formatPatientCode(p.patientCode)}
                         {/* below md: age/gender + created live here */}
                         <span className="font-sans md:hidden">
                           {" · "}
@@ -222,10 +279,12 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
                       <Phone className="size-3 text-muted-foreground" />
                       {p.phone}
                     </p>
-                    <p className="flex items-center gap-1.5 text-muted-foreground">
-                      <Mail className="size-3" />
-                      {p.email}
-                    </p>
+                    {p.email && (
+                      <p className="flex items-center gap-1.5 text-muted-foreground">
+                        <Mail className="size-3" />
+                        {p.email}
+                      </p>
+                    )}
                   </div>
                 </TableCell>
 
@@ -293,6 +352,8 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
                           href={`/dashboard/patients/${p.id}`}
                           title="View patient"
                           aria-label={`View ${p.name}`}
+                          onMouseEnter={() => prefetchPatient(p.id)}
+                          onFocus={() => prefetchPatient(p.id)}
                           className={buttonVariants({
                             variant: "ghost",
                             size: "icon-sm",
@@ -353,31 +414,29 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
         <p className="text-xs text-muted-foreground">
           Showing{" "}
           <span className="font-medium text-foreground">
-            {filtered.length === 0 ? 0 : start + 1}–
-            {Math.min(start + ITEMS_PER_PAGE, filtered.length)}
+            {rows.length === 0 ? 0 : start + 1}–{start + rows.length}
           </span>{" "}
-          of{" "}
-          <span className="font-medium text-foreground">{filtered.length}</span>
+          of <span className="font-medium text-foreground">{total}</span>
         </p>
 
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(Math.max(page - 1, 1))}
-            disabled={page === 1}
+            onClick={() => setPage(Math.max(page - 1, 1))}
+            disabled={page <= 1}
             aria-label="Previous page"
           >
             <ChevronLeft />
             <span className="hidden sm:inline">Previous</span>
           </Button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+          {getPageWindow(page, totalPages).map((n) => (
             <Button
               key={n}
               variant={page === n ? "default" : "ghost"}
               size="icon-sm"
-              onClick={() => setCurrentPage(n)}
+              onClick={() => setPage(n)}
               aria-current={page === n ? "page" : undefined}
             >
               {n}
@@ -387,8 +446,8 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(Math.min(page + 1, totalPages))}
-            disabled={page === totalPages}
+            onClick={() => setPage(Math.min(page + 1, totalPages))}
+            disabled={page >= totalPages}
             aria-label="Next page"
           >
             <span className="hidden sm:inline">Next</span>
@@ -399,6 +458,33 @@ const PatientTable = ({ patients: initialPatients }: PatientTableProps) => {
     </section>
   )
 }
+
+const SkeletonRow = () => (
+  <TableRow className="hover:bg-transparent">
+    <TableCell className="py-2.5 pl-3 sm:pl-4">
+      <div className="flex items-center gap-2.5">
+        <Skeleton className="size-8 shrink-0" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-12" />
+        </div>
+      </div>
+    </TableCell>
+    <TableCell className={col.contact}>
+      <Skeleton className="h-3 w-28" />
+    </TableCell>
+    <TableCell className={col.ageGender}>
+      <Skeleton className="h-3 w-20" />
+    </TableCell>
+    <TableCell className={col.address}>
+      <Skeleton className="h-3 w-40" />
+    </TableCell>
+    <TableCell className={col.created}>
+      <Skeleton className="h-3 w-20" />
+    </TableCell>
+    <TableCell />
+  </TableRow>
+)
 
 const DateField = ({
   id,

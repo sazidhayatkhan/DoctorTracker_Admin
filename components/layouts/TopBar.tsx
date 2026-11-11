@@ -6,9 +6,13 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { getInitials } from "@/features/doctors/utils";
+import { useAuthStore } from "@/stores/auth.store";
 
 const TopBar = () => {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -37,8 +41,9 @@ const TopBar = () => {
 
   const handleSignOut = () => {
     setIsOpen(false);
-    // TODO: Clear authentication session/token
-    router.push("/login");
+    // Clears the session and every cached response; AuthGuard then
+    // redirects to /login.
+    logout();
   };
 
   return (
@@ -56,11 +61,11 @@ const TopBar = () => {
           className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-muted"
         >
           <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            AD
+            {user ? getInitials(user.name) || "AD" : "AD"}
           </div>
 
           <span className="hidden text-sm font-medium sm:block">
-            Admin
+            {user?.name ?? "Admin"}
           </span>
 
           <ChevronDown

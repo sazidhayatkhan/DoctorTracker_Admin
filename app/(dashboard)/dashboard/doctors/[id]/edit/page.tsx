@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 
-import EditDoctorPageUI from "@/features/doctors/EditDoctorPageUI"
 import { doctors } from "@/features/doctors/data"
+import EditDoctorPageUI from "@/features/doctors/edit-doctor/EditDoctorPageUI"
 
 export default async function EditDoctorPage({
   params,

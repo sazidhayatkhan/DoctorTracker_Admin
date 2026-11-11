@@ -2,45 +2,59 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
+import { useCreatePatient } from "../queries"
+import type { Patient } from "../schemas"
+import { formatPatientCode } from "../utils"
+import FormBanner from "./FormBanner"
 import PatientForm from "./PatientForm"
+import { applyServerErrors } from "./form-errors"
 
-type CreatePatientFormProps = {
-  existingPhones: string[]
-}
-
-const CreatePatientForm = ({ existingPhones }: CreatePatientFormProps) => {
-  // Phones registered during this visit, so the same patient can't be added twice
-  const [addedPhones, setAddedPhones] = useState<string[]>([])
-  const [createdName, setCreatedName] = useState<string | null>(null)
+const CreatePatientForm = () => {
+  const createPatient = useCreatePatient()
+  const [created, setCreated] = useState<Patient | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   return (
     <PatientForm
       idPrefix="create-patient"
-      existingPhones={[...existingPhones, ...addedPhones]}
       className="border bg-card shadow-xs"
-      onSubmit={(data, { reset }) => {
-        // TODO: POST /patients, then router.push(`/dashboard/patients/${newId}`)
-        setAddedPhones((prev) => [...prev, data.phone])
-        setCreatedName(data.name)
-        reset()
+      disabled={createPatient.isPending}
+      onSubmit={(data, { reset, setErrors }) => {
+        setFormError(null)
+        setCreated(null)
+
+        createPatient.mutate(data, {
+          onSuccess: (patient) => {
+            setCreated(patient)
+            reset()
+          },
+          onError: (error) => setFormError(applyServerErrors(error, setErrors)),
+        })
       }}
       header={
-        createdName && (
-          <div className="flex items-center gap-2 border-b border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-            <CheckCircle2 className="size-4 shrink-0" />
-            <span className="flex-1">
-              <strong>{createdName}</strong> was registered successfully.
-            </span>
-            <Link
-              href="/dashboard/patients"
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              View patients
-            </Link>
-          </div>
+        formError ? (
+          <FormBanner tone="error">{formError}</FormBanner>
+        ) : (
+          created && (
+            <FormBanner tone="success">
+              <span className="flex-1">
+                <strong>{created.name}</strong> was registered as{" "}
+                <span className="font-mono">
+                  {formatPatientCode(created.patientCode)}
+                </span>
+                .
+              </span>
+              <Link
+                href={`/dashboard/patients/${created.id}`}
+                className="font-medium underline-offset-4 hover:underline"
+              >
+                View patient
+              </Link>
+            </FormBanner>
+          )
         )
       }
       footer={
@@ -51,7 +65,8 @@ const CreatePatientForm = ({ existingPhones }: CreatePatientFormProps) => {
           >
             Cancel
           </Link>
-          <Button type="submit" size="lg">
+          <Button type="submit" size="lg" disabled={createPatient.isPending}>
+            {createPatient.isPending && <Loader2 className="animate-spin" />}
             Create Patient
           </Button>
         </div>
