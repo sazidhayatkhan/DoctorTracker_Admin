@@ -19,6 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 const icons = {
@@ -48,6 +49,13 @@ interface SideBarMenuGroupProps {
 const SideBarMenuGroup = ({ title, items }: SideBarMenuGroupProps) => {
   const pathname = usePathname()
   const router = useRouter()
+  const { isMobile, setOpenMobile } = useSidebar()
+
+  const navigate = (url: string) => {
+    // On mobile the sidebar is an overlay sheet: close it after picking a page.
+    if (isMobile) setOpenMobile(false)
+    router.push(url)
+  }
 
   return (
     <SidebarGroup>
@@ -63,7 +71,7 @@ const SideBarMenuGroup = ({ title, items }: SideBarMenuGroupProps) => {
                 <SidebarMenuButton
                   isActive={pathname === item.url}
                   tooltip={item.title}
-                  onClick={() => router.push(item.url)}
+                  onClick={() => navigate(item.url)}
                 >
                   <Icon />
                   <span>{item.title}</span>

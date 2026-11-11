@@ -20,7 +20,7 @@ const toItems = (allLabel: string, options: LookupOption[]) => [
   ...options.map((o) => ({ label: o.name, value: o.id })),
 ]
 
-/** Search, specialization, hospital and registration-date filters for the doctor list */
+/** Search, specialization, hospital and created-date filters for the doctor list */
 const DoctorFilter = () => {
   const {
     search,
@@ -49,7 +49,7 @@ const DoctorFilter = () => {
   )
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
       {/* Search */}
       <div className="relative min-w-0 flex-1 sm:min-w-56">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -105,30 +105,21 @@ const DoctorFilter = () => {
         </SelectContent>
       </Select>
 
-      {/* Registration date range */}
-      <div className="relative w-full sm:w-[155px]">
-        <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="date"
-          className="pl-9"
-          aria-label="Registered from"
+      {/* Created date range */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-end">
+        <DateField
+          id="doctors-from"
+          label="Created from"
           value={from}
           max={to || undefined}
-          onChange={(e) => setFrom(e.target.value)}
+          onChange={setFrom}
         />
-      </div>
-
-      <span className="hidden text-sm text-muted-foreground sm:block">to</span>
-
-      <div className="relative w-full sm:w-[155px]">
-        <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="date"
-          className="pl-9"
-          aria-label="Registered to"
+        <DateField
+          id="doctors-to"
+          label="Created to"
           value={to}
           min={from || undefined}
-          onChange={(e) => setTo(e.target.value)}
+          onChange={setTo}
         />
       </div>
 
@@ -145,5 +136,42 @@ const DoctorFilter = () => {
     </div>
   )
 }
+
+const DateField = ({
+  id,
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  id: string
+  label: string
+  value: string
+  min?: string
+  max?: string
+  onChange: (value: string) => void
+}) => (
+  <div className="min-w-0 space-y-1">
+    <label
+      htmlFor={id}
+      className="text-[11px] font-medium text-muted-foreground"
+    >
+      {label}
+    </label>
+    <div className="relative">
+      <CalendarDays className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        id={id}
+        type="date"
+        value={value}
+        min={min}
+        max={max}
+        onChange={(e) => onChange(e.target.value)}
+        className="pl-8 sm:w-40"
+      />
+    </div>
+  </div>
+)
 
 export default DoctorFilter

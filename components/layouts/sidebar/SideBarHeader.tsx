@@ -1,15 +1,20 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { HeartPulse } from "lucide-react"
 
-import { SidebarHeader } from "@/components/ui/sidebar"
+import { SidebarHeader, useSidebar } from "@/components/ui/sidebar"
 
 const SideBarHeader = () => {
+  const { isMobile, setOpenMobile } = useSidebar()
+
   return (
     <SidebarHeader className="flex h-16 shrink-0 items-center justify-center border-b">
       <Link
         href="/dashboard"
         aria-label="DoctorTracker dashboard"
+        onClick={() => isMobile && setOpenMobile(false)}
         className="flex items-center justify-center"
       >
         {/* Full logo when expanded */}
