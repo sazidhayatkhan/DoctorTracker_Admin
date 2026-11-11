@@ -1,7 +1,11 @@
+import type { Metadata } from "next"
 import PatientsPageUI from "@/features/patients/PatientsPageUI"
 
-const page = () => {
-  return <PatientsPageUI />
+export const metadata: Metadata = {
+  title: "Patients",
+  description: "Search and manage registered patients.",
 }
 
-export default page
+export default function PatientsPage() {
+  return <PatientsPageUI />
+}

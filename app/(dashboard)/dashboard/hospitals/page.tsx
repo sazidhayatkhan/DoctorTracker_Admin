@@ -1,8 +1,11 @@
-"use client"
-
-import { hospitalConfig } from "@/features/directory/config"
+import type { Metadata } from "next"
 import DirectoryPageUI from "@/features/directory/DirectoryPageUI"
 
-const page = () => <DirectoryPageUI config={hospitalConfig} />
+export const metadata: Metadata = {
+  title: "Hospitals",
+  description: "Manage the hospitals doctors can be assigned to.",
+}
 
-export default page
+export default function HospitalsPage() {
+  return <DirectoryPageUI kind="hospital" />
+}

@@ -31,7 +31,7 @@ import { useDoctorListStore } from "@/features/doctors/store"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getErrorMessage } from "@/lib/api/errors"
 import { getPageWindow } from "@/lib/pagination"
-import type { DirectoryConfig } from "./config"
+import { directoryConfigs, type DirectoryKind } from "./config"
 import { useDirectoryPage } from "./queries"
 import type { DirectoryItem } from "./schemas"
 import { useDirectoryListStore } from "./store"
@@ -43,8 +43,12 @@ const ITEMS_PER_PAGE = 10
 const headClass =
   "text-xs font-medium tracking-wide text-muted-foreground uppercase"
 
-/** The hospitals or specializations page: search, list, add, edit, delete */
-const DirectoryPageUI = ({ config }: { config: DirectoryConfig }) => {
+/**
+ * The hospitals or specializations page: search, list, add, edit, delete.
+ * Takes the kind (a string), not the config, so server pages can render it.
+ */
+const DirectoryPageUI = ({ kind }: { kind: DirectoryKind }) => {
+  const config = directoryConfigs[kind]
   const router = useRouter()
   const { search, page, setSearch, setPage, clearSearch } =
     useDirectoryListStore(config.kind)
