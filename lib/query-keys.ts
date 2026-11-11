@@ -23,6 +23,13 @@ export const doctorKeys = {
   patients: (id: string) => [...doctorKeys.detail(id), "patients"] as const,
 }
 
+/** Hospital / specialization management lists; [root] also covers the options below */
+export const directoryKeys = {
+  all: (root: "hospitals" | "specializations") => [root] as const,
+  list: (root: "hospitals" | "specializations", params: object) =>
+    [root, "list", params] as const,
+}
+
 export const lookupKeys = {
   hospitals: ["hospitals", "options"] as const,
   specializations: ["specializations", "options"] as const,
@@ -31,4 +38,6 @@ export const lookupKeys = {
 export const analyticsKeys = {
   all: ["analytics"] as const,
   overview: () => [...analyticsKeys.all, "overview"] as const,
+  dashboard: (params: object) =>
+    [...analyticsKeys.all, "dashboard", params] as const,
 }

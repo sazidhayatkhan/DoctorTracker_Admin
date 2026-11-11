@@ -48,8 +48,16 @@ const col = {
 }
 
 const DoctorTable = () => {
-  const { search, specializationId, from, to, page, setPage, clearFilters } =
-    useDoctorListStore()
+  const {
+    search,
+    specializationId,
+    hospitalId,
+    from,
+    to,
+    page,
+    setPage,
+    clearFilters,
+  } = useDoctorListStore()
 
   // Wait for typing to pause before querying the server.
   const debouncedSearch = useDebouncedValue(search.trim(), 300)
@@ -65,6 +73,7 @@ const DoctorTable = () => {
   } = useDoctors({
     q: debouncedSearch.length >= 2 ? debouncedSearch : undefined,
     specializationId: specializationId || undefined,
+    hospitalId: hospitalId || undefined,
     from: from || undefined,
     to: to || undefined,
     page,
@@ -80,7 +89,13 @@ const DoctorTable = () => {
   const total = data?.pagination.total ?? 0
   const totalPages = data?.pagination.totalPages ?? 1
   const start = (page - 1) * ITEMS_PER_PAGE
-  const hasFilters = !!(search.trim() || specializationId || from || to)
+  const hasFilters = !!(
+    search.trim() ||
+    specializationId ||
+    hospitalId ||
+    from ||
+    to
+  )
 
   // A delete can empty the last page: step back to the new last page.
   useEffect(() => {

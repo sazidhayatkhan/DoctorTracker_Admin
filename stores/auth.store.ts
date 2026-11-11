@@ -14,8 +14,16 @@ export type AuthUser = {
 type AuthState = {
   token: string | null
   user: AuthUser | null
+  /**
+   * True right after the admin chose "Sign out" (not persisted), so the
+   * guard sends them to the start page instead of the login page.
+   */
+  signedOut: boolean
   setSession: (token: string, user: AuthUser) => void
+  /** Session ended or expired: the guard sends the admin to /login */
   logout: () => void
+  /** The admin signed out themselves: the guard sends them to / */
+  signOut: () => void
 }
 
 /** Logged-in admin session, kept in localStorage across reloads */
@@ -24,10 +32,15 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
-      setSession: (token, user) => set({ token, user }),
+      signedOut: false,
+      setSession: (token, user) => set({ token, user, signedOut: false }),
       logout: () => {
         clearQueryCache()
-        set({ token: null, user: null })
+        set({ token: null, user: null, signedOut: false })
+      },
+      signOut: () => {
+        clearQueryCache()
+        set({ token: null, user: null, signedOut: true })
       },
     }),
     {

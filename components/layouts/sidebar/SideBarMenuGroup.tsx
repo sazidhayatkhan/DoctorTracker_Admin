@@ -8,6 +8,8 @@ import {
   ClipboardPlus,
   Users,
   UserRoundPlus,
+  Building2,
+  BriefcaseMedical,
 } from "lucide-react"
 
 import {
@@ -26,6 +28,8 @@ const icons = {
   ClipboardPlus,
   Users,
   UserRoundPlus,
+  Building2,
+  BriefcaseMedical,
 }
 
 type IconName = keyof typeof icons

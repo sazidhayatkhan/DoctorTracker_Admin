@@ -2,6 +2,7 @@ import { Sidebar, SidebarContent, SidebarRail } from "@/components/ui/sidebar"
 
 import {
   dashboardNavigation,
+  directoryNavigation,
   doctorNavigation,
   patientNavigation,
 } from "./sidebar.config"
@@ -20,6 +21,8 @@ const SideBar = () => {
         <SideBarMenuGroup title="Doctors" items={doctorNavigation} />
 
         <SideBarMenuGroup title="Patients" items={patientNavigation} />
+
+        <SideBarMenuGroup title="Directory" items={directoryNavigation} />
       </SidebarContent>
 
       <SidebarRail />

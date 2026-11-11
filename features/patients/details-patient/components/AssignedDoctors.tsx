@@ -67,7 +67,7 @@ const AssignedDoctors = ({ patientId }: AssignedDoctorsProps) => {
         </div>
       ) : assignments.length > 0 ? (
         <ul className="divide-y">
-          {assignments.map(({ id, doctor, condition, assignedAt }) => (
+          {assignments.map(({ id, doctor, condition, notes, assignedAt }) => (
             <li key={id}>
               <Link
                 href={`/dashboard/doctors/${doctor.id}`}
@@ -103,6 +103,15 @@ const AssignedDoctors = ({ patientId }: AssignedDoctorsProps) => {
                     {" · since "}
                     {formatDate(assignedAt)}
                   </p>
+
+                  {notes && (
+                    <p
+                      className="line-clamp-3 border-l-2 pl-2 text-xs whitespace-pre-line text-muted-foreground"
+                      title={notes}
+                    >
+                      {notes}
+                    </p>
+                  )}
                 </div>
               </Link>
             </li>

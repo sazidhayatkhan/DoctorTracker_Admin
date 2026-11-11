@@ -31,6 +31,7 @@ import {
   updateDoctor,
 } from "./api"
 import type {
+  AssignPatientInput,
   DoctorListParams,
   DoctorPage,
   DoctorPatient,
@@ -252,7 +253,7 @@ export const useAssignPatient = (doctorId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: { patientId: string; condition: string }) =>
+    mutationFn: (data: AssignPatientInput) =>
       assignPatient(doctorId, data),
     onSuccess: (assignment) => {
       // Show it at the top right away; the refetch below confirms it.

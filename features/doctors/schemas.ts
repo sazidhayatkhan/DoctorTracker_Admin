@@ -40,17 +40,29 @@ export const doctorPatientSchema = z
   .object({
     _id: z.string(),
     condition: z.string(),
+    notes: z.string().optional(),
     createdAt: z.string(),
     patient: patientSchema,
   })
-  .transform(({ _id, condition, createdAt, patient }) => ({
+  .transform(({ _id, condition, notes, createdAt, patient }) => ({
     id: _id,
     condition,
+    notes: notes ?? "",
     assignedAt: createdAt,
     patient,
   }))
 
 export type DoctorPatient = z.output<typeof doctorPatientSchema>
+
+/** Body of POST /doctors/:id/patients */
+export type AssignPatientInput = {
+  patientId: string
+  condition: string
+  notes?: string
+}
+
+/** Must match the backend's limit on assignment notes */
+export const ASSIGNMENT_NOTES_MAX = 2000
 
 /** A hospital / specialization choice */
 export const lookupOptionSchema = namedRefSchema
@@ -105,6 +117,7 @@ export type DoctorPayload = {
 export type DoctorListParams = {
   q?: string
   specializationId?: string
+  hospitalId?: string
   from?: string
   to?: string
   page: number

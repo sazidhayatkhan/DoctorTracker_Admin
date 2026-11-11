@@ -176,7 +176,7 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
               </TableCell>
             </TableRow>
           ) : filtered.length > 0 ? (
-            filtered.map(({ id, patient, condition, assignedAt }) => (
+            filtered.map(({ id, patient, condition, notes, assignedAt }) => (
               <TableRow key={id}>
                 <TableCell className="py-3 pl-4">
                   <div className="flex items-center gap-3">
@@ -202,7 +202,17 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
                 <TableCell className="text-muted-foreground tabular-nums">
                   {patient.phone}
                 </TableCell>
-                <TableCell>{condition}</TableCell>
+                <TableCell className="max-w-64 whitespace-normal">
+                  <p>{condition}</p>
+                  {notes && (
+                    <p
+                      className="line-clamp-2 text-xs whitespace-pre-line text-muted-foreground"
+                      title={notes}
+                    >
+                      {notes}
+                    </p>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground tabular-nums">
                   {formatDate(assignedAt)}
                 </TableCell>

@@ -11,31 +11,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useSpecializationOptions } from "../queries"
+import type { LookupOption } from "../schemas"
+import { useHospitalOptions, useSpecializationOptions } from "../queries"
 import { useDoctorListStore } from "../store"
 
-const ALL = { label: "All Specializations", value: "" }
+const toItems = (allLabel: string, options: LookupOption[]) => [
+  { label: allLabel, value: "" },
+  ...options.map((o) => ({ label: o.name, value: o.id })),
+]
 
-/** Search, specialization and registration-date filters for the doctor list */
+/** Search, specialization, hospital and registration-date filters for the doctor list */
 const DoctorFilter = () => {
   const {
     search,
     specializationId,
+    hospitalId,
     from,
     to,
     setSearch,
     setSpecializationId,
+    setHospitalId,
     setFrom,
     setTo,
     clearFilters,
   } = useDoctorListStore()
   const { data: specializations = [] } = useSpecializationOptions()
+  const { data: hospitals = [] } = useHospitalOptions()
 
-  const items = [
-    ALL,
-    ...specializations.map((s) => ({ label: s.name, value: s.id })),
-  ]
-  const hasFilters = !!(search.trim() || specializationId || from || to)
+  const specializationItems = toItems("All Specializations", specializations)
+  const hospitalItems = toItems("All Hospitals", hospitals)
+  const hasFilters = !!(
+    search.trim() ||
+    specializationId ||
+    hospitalId ||
+    from ||
+    to
+  )
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -54,7 +65,7 @@ const DoctorFilter = () => {
 
       {/* Specialization */}
       <Select
-        items={items}
+        items={specializationItems}
         value={specializationId}
         onValueChange={(v) => setSpecializationId((v as string | null) ?? "")}
       >
@@ -65,7 +76,28 @@ const DoctorFilter = () => {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {items.map((item) => (
+          {specializationItems.map((item) => (
+            <SelectItem key={item.value || "all"} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Hospital */}
+      <Select
+        items={hospitalItems}
+        value={hospitalId}
+        onValueChange={(v) => setHospitalId((v as string | null) ?? "")}
+      >
+        <SelectTrigger
+          className="w-full sm:w-[200px]"
+          aria-label="Filter by hospital"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {hospitalItems.map((item) => (
             <SelectItem key={item.value || "all"} value={item.value}>
               {item.label}
             </SelectItem>

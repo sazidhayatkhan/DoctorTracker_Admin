@@ -5,6 +5,8 @@ export type IconName =
   | "ClipboardPlus"
   | "Users"
   | "UserRoundPlus"
+  | "Building2"
+  | "BriefcaseMedical"
 
 export interface MenuItem {
   title: string
@@ -43,5 +45,18 @@ export const patientNavigation: MenuItem[] = [
     title: "Create Patient",
     url: "/dashboard/patients/create",
     icon: "UserRoundPlus",
+  },
+]
+
+export const directoryNavigation: MenuItem[] = [
+  {
+    title: "Hospitals",
+    url: "/dashboard/hospitals",
+    icon: "Building2",
+  },
+  {
+    title: "Specializations",
+    url: "/dashboard/specializations",
+    icon: "BriefcaseMedical",
   },
 ]

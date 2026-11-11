@@ -4,6 +4,16 @@ import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronDown, LogOut, UserRound } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { getInitials } from "@/features/doctors/utils"
 import { useAuthStore } from "@/stores/auth.store"
@@ -11,8 +21,9 @@ import { useAuthStore } from "@/stores/auth.store"
 const TopBar = () => {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
+  const signOut = useAuthStore((s) => s.signOut)
   const [isOpen, setIsOpen] = useState(false)
+  const [isConfirmingSignOut, setIsConfirmingSignOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
@@ -38,11 +49,16 @@ const TopBar = () => {
     router.push("/dashboard/profile")
   }
 
-  const handleSignOut = () => {
+  const handleSignOutClick = () => {
     setIsOpen(false)
+    setIsConfirmingSignOut(true)
+  }
+
+  const handleConfirmSignOut = () => {
+    setIsConfirmingSignOut(false)
     // Clears the session and every cached response; AuthGuard then
-    // redirects to /login.
-    logout()
+    // redirects to the start page.
+    signOut()
   }
 
   return (
@@ -94,7 +110,7 @@ const TopBar = () => {
 
             <button
               type="button"
-              onClick={handleSignOut}
+              onClick={handleSignOutClick}
               className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-muted"
             >
               <LogOut className="size-4" />
@@ -103,6 +119,27 @@ const TopBar = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={isConfirmingSignOut} onOpenChange={setIsConfirmingSignOut}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Sign out?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to sign out? You&apos;ll need to log in
+              again to access the dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button variant="destructive" onClick={handleConfirmSignOut}>
+              <LogOut />
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }

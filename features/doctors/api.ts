@@ -7,6 +7,7 @@ import {
   doctorSchema,
   doctorStatsSchema,
   lookupOptionSchema,
+  type AssignPatientInput,
   type DoctorListParams,
   type DoctorPayload,
 } from "./schemas"
@@ -51,7 +52,7 @@ export const fetchDoctorPatients = (doctorId: string, signal?: AbortSignal) =>
 
 export const assignPatient = (
   doctorId: string,
-  data: { patientId: string; condition: string }
+  data: AssignPatientInput
 ) =>
   apiRequest(`/doctors/${doctorId}/patients`, {
     method: "POST",

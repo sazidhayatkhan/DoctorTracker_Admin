@@ -7,6 +7,7 @@ import { Loader2, Search, UserPlus, X } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Sheet,
   SheetContent,
@@ -22,6 +23,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { ApiError, getErrorMessage } from "@/lib/api/errors"
 import { patientKeys } from "@/lib/query-keys"
 import { useAssignPatient } from "../../queries"
+import { ASSIGNMENT_NOTES_MAX } from "../../schemas"
 import { getInitials } from "../../utils"
 
 type AddPatientSheetProps = {
@@ -76,6 +78,7 @@ const AssignPatientForm = ({
   const [activeIndex, setActiveIndex] = useState(0)
   const [selected, setSelected] = useState<Patient | null>(null)
   const [condition, setCondition] = useState("")
+  const [notes, setNotes] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const assignPatient = useAssignPatient(doctorId)
@@ -110,6 +113,7 @@ const AssignPatientForm = ({
   const clearSelection = () => {
     setSelected(null)
     setCondition("")
+    setNotes("")
     setError(null)
   }
 
@@ -142,7 +146,11 @@ const AssignPatientForm = ({
     }
 
     assignPatient.mutate(
-      { patientId: selected.id, condition: condition.trim() },
+      {
+        patientId: selected.id,
+        condition: condition.trim(),
+        notes: notes.trim() || undefined,
+      },
       {
         onSuccess: onDone,
         onError: (err) =>
@@ -219,6 +227,36 @@ const AssignPatientForm = ({
                   setError(null)
                 }}
                 autoFocus
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <label htmlFor="notes" className="text-xs font-medium">
+                  Notes{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </label>
+                <span
+                  className="text-[11px] text-muted-foreground tabular-nums"
+                  aria-live="polite"
+                >
+                  {notes.length}/{ASSIGNMENT_NOTES_MAX}
+                </span>
+              </div>
+              <Textarea
+                id="notes"
+                rows={4}
+                maxLength={ASSIGNMENT_NOTES_MAX}
+                placeholder="e.g. Follow up in 2 weeks. Monitor blood pressure daily."
+                value={notes}
+                disabled={assignPatient.isPending}
+                onChange={(e) => {
+                  setNotes(e.target.value)
+                  setError(null)
+                }}
+                className="max-h-64"
               />
             </div>
           </>

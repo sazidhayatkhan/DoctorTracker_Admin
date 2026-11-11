@@ -47,6 +47,7 @@ export const patientAssignmentSchema = z
   .object({
     _id: z.string(),
     condition: z.string(),
+    notes: z.string().optional(),
     createdAt: z.string(),
     doctor: z.object({
       _id: z.string(),
@@ -55,9 +56,10 @@ export const patientAssignmentSchema = z
       specialization: optionalNamedRefSchema,
     }),
   })
-  .transform(({ _id, createdAt, doctor, condition }) => ({
+  .transform(({ _id, createdAt, doctor, condition, notes }) => ({
     id: _id,
     condition,
+    notes: notes ?? "",
     assignedAt: createdAt,
     doctor: {
       id: doctor._id,
