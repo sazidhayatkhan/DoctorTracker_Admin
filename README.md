@@ -1,22 +1,30 @@
-# Next.js template
+# Doctor Tracker — Admin
 
-This is a Next.js template with shadcn/ui.
+Admin dashboard for managing doctors, patients, hospitals and specializations.
+Next.js · React · TanStack Query · Zustand · Tailwind.
 
-## Adding components
+**Live:** https://doctor-tracker-admin.vercel.app
 
-To add components to your app, run the following command:
+## Run locally
+
+Start the [backend](../doctorTracker_backend) first, then:
 
 ```bash
-npx shadcn@latest add button
+npm install
+cp .env.example .env.local
+npm run dev          # http://localhost:3000
 ```
 
-This will place the ui components in the `components` directory.
+## Environment
 
-## Using components
+| Variable | Local | Vercel |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:5000/api` | `/api` |
+| `BACKEND_URL` | — | `http://<server>:5001/api` |
 
-To use the components in your app, import them as follows:
+On Vercel, the browser calls `/api` and Vercel forwards it to `BACKEND_URL`,
+so an HTTPS site can use an HTTP-only backend. Redeploy after changing either.
 
-```tsx
-import { Button } from "@/components/ui/button";
-```
-# DoctorTracker_Admin
+## Scripts
+
+`npm run dev` · `npm run build` · `npm run lint` · `npm run format`
