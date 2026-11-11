@@ -125,13 +125,21 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
       <Table className="text-sm">
         <TableHeader className="bg-muted/50">
           <TableRow className="hover:bg-transparent">
-            <TableHead className={`h-11 pl-4 ${headClass}`}>Patient</TableHead>
-            <TableHead className={headClass}>Age / Gender</TableHead>
-            <TableHead className={headClass}>Phone</TableHead>
+            <TableHead className={`h-11 pl-3 sm:pl-4 ${headClass}`}>
+              Patient
+            </TableHead>
+            <TableHead className={`hidden md:table-cell ${headClass}`}>
+              Age / Gender
+            </TableHead>
+            <TableHead className={`hidden md:table-cell ${headClass}`}>
+              Phone
+            </TableHead>
             <TableHead className={headClass}>Condition</TableHead>
-            <TableHead className={headClass}>Assigned</TableHead>
-            <TableHead className={`pr-4 text-right ${headClass}`}>
-              Actions
+            <TableHead className={`hidden sm:table-cell ${headClass}`}>
+              Assigned
+            </TableHead>
+            <TableHead className={`pr-3 text-right sm:pr-4 ${headClass}`}>
+              <span className="sr-only sm:not-sr-only">Actions</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -140,22 +148,22 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
           {isPending ? (
             Array.from({ length: 3 }, (_, i) => (
               <TableRow key={i} className="hover:bg-transparent">
-                <TableCell className="py-3 pl-4">
+                <TableCell className="py-3 pl-3 sm:pl-4">
                   <div className="flex items-center gap-3">
-                    <Skeleton className="size-8" />
-                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="hidden size-8 sm:block" />
+                    <Skeleton className="h-4 w-28 sm:w-32" />
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Skeleton className="h-3 w-20" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Skeleton className="h-3 w-28" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-3 w-24" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Skeleton className="h-3 w-20" />
                 </TableCell>
                 <TableCell />
@@ -178,9 +186,9 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
           ) : filtered.length > 0 ? (
             filtered.map(({ id, patient, condition, notes, assignedAt }) => (
               <TableRow key={id}>
-                <TableCell className="py-3 pl-4">
+                <TableCell className="py-2.5 pl-3 align-top sm:py-3 sm:pl-4 sm:align-middle">
                   <div className="flex items-center gap-3">
-                    <div className="flex size-8 shrink-0 items-center justify-center bg-muted text-xs font-semibold">
+                    <div className="hidden size-8 shrink-0 items-center justify-center bg-muted text-xs font-semibold sm:flex">
                       {getInitials(patient.name)}
                     </div>
                     <div className="min-w-0">
@@ -193,16 +201,24 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
                       <p className="font-mono text-[11px] text-muted-foreground">
                         {formatPatientCode(patient.patientCode)}
                       </p>
+                      {/* Columns hidden on small screens, folded in here */}
+                      <p className="text-xs text-muted-foreground md:hidden">
+                        {formatAge(patient.birthDate)} · {patient.gender}
+                        <span className="tabular-nums"> · {patient.phone}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground tabular-nums sm:hidden">
+                        Assigned {formatDate(assignedAt)}
+                      </p>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground md:table-cell">
                   {formatAge(patient.birthDate)} · {patient.gender}
                 </TableCell>
-                <TableCell className="text-muted-foreground tabular-nums">
+                <TableCell className="hidden text-muted-foreground tabular-nums md:table-cell">
                   {patient.phone}
                 </TableCell>
-                <TableCell className="max-w-64 whitespace-normal">
+                <TableCell className="min-w-32 py-2.5 align-top whitespace-normal sm:max-w-64 sm:py-2 sm:align-middle">
                   <p>{condition}</p>
                   {notes && (
                     <p
@@ -213,11 +229,11 @@ const DoctorPatients = ({ doctor }: DoctorPatientsProps) => {
                     </p>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground tabular-nums">
+                <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
                   {formatDate(assignedAt)}
                 </TableCell>
-                <TableCell className="pr-4">
-                  <div className="flex items-center justify-end gap-1">
+                <TableCell className="pr-3 align-top sm:pr-4 sm:align-middle">
+                  <div className="flex flex-wrap items-center justify-end gap-1">
                     {confirmingId === patient.id ? (
                       <>
                         <span className="mr-1 text-xs text-muted-foreground">

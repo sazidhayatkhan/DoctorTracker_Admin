@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Building2, CalendarDays, Mail, Pencil, Phone } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import type { Doctor } from "../../schemas"
 import { formatDate, getInitials, specializationClass } from "../../utils"
 
@@ -46,11 +47,10 @@ const DoctorProfileCard = ({ doctor }: DoctorProfileCardProps) => {
           <Link
             href={editHref}
             aria-label="Edit doctor"
-            className={buttonVariants({
-              variant: "outline",
-              size: "icon",
-              className: "md:hidden",
-            })}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "icon" }),
+              "md:hidden"
+            )}
           >
             <Pencil />
           </Link>
@@ -72,10 +72,11 @@ const DoctorProfileCard = ({ doctor }: DoctorProfileCardProps) => {
 
         <Link
           href={editHref}
-          className={buttonVariants({
-            variant: "outline",
-            className: "hidden shrink-0 md:inline-flex",
-          })}
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            // cn lets "hidden" override the base inline-flex on mobile
+            "hidden shrink-0 md:inline-flex"
+          )}
         >
           <Pencil />
           Edit Profile

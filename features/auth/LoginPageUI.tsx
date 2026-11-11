@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
-import { ArrowLeft, HeartPulse, Loader2 } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff, HeartPulse, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,7 @@ const LoginPageUI = () => {
 
   const [values, setValues] = useState<LoginForm>({ email: "", password: "" })
   const [errors, setErrors] = useState<Errors>({})
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     if (hydrated && token) router.replace(next)
@@ -129,14 +130,29 @@ const LoginPageUI = () => {
             <label htmlFor="login-password" className="text-xs font-medium">
               Password
             </label>
-            <Input
-              id="login-password"
-              type="password"
-              autoComplete="current-password"
-              value={values.password}
-              onChange={(e) => set("password", e.target.value)}
-              aria-invalid={!!errors.password || undefined}
-            />
+            <div className="relative">
+              <Input
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={values.password}
+                onChange={(e) => set("password", e.target.value)}
+                aria-invalid={!!errors.password || undefined}
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                aria-controls="login-password"
+                className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </Button>
+            </div>
             {errors.password && (
               <p className="text-xs text-destructive">{errors.password}</p>
             )}
