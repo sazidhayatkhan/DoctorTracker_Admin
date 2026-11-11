@@ -1,8 +1,11 @@
-import CreateDoctorPageUI from "@/features/doctors/CreateDoctorPageUI"
-import React from "react"
+import type { Metadata } from "next"
+import CreateDoctorPageUI from "@/features/doctors/create-doctor/CreateDoctorPageUI"
 
-const page = () => {
-  return <CreateDoctorPageUI />
+export const metadata: Metadata = {
+  title: "Add Doctor",
+  description: "Register a new doctor.",
 }
 
-export default page
+export default function CreateDoctorPage() {
+  return <CreateDoctorPageUI />
+}

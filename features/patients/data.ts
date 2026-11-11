@@ -16,7 +16,9 @@ export type PatientRecord = {
   createdAt: string
 }
 
-// TODO: replace with API data (GET /patients)
+// MOCK DATA — the patient pages now use the API (see ./api.ts, ./queries.ts).
+// Still used by the dashboard analytics and the doctor "Add patient" sheet
+// until those are connected; delete this file once they are.
 export const patientRecords: PatientRecord[] = [
   {
     id: "PT-1001",

@@ -1,7 +1,10 @@
-import { notFound } from "next/navigation"
+import type { Metadata } from "next"
+import DoctorDetailsUI from "@/features/doctors/details-doctor/DoctorDetailsUI"
 
-import DoctorDetailsUI from "@/features/doctors/DoctorDetailsUI"
-import { doctors, patients } from "@/features/doctors/data"
+export const metadata: Metadata = {
+  title: "Doctor Details",
+  description: "A doctor's profile and assigned patients.",
+}
 
 export default async function DoctorDetailsPage({
   params,
@@ -9,14 +12,5 @@ export default async function DoctorDetailsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const doctor = doctors.find((d) => d.id === Number(id))
-
-  if (!doctor) notFound()
-
-  return (
-    <DoctorDetailsUI
-      doctor={doctor}
-      patients={patients.filter((p) => p.doctorId === doctor.id)}
-    />
-  )
+  return <DoctorDetailsUI id={id} />
 }

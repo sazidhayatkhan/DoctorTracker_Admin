@@ -1,7 +1,10 @@
-import { notFound } from "next/navigation"
+import type { Metadata } from "next"
+import EditPatientPageUI from "@/features/patients/edit-patient/EditPatientPageUI"
 
-import EditPatientPageUI from "@/features/patients/EditPatientPageUI"
-import { patientRecords } from "@/features/patients/data"
+export const metadata: Metadata = {
+  title: "Edit Patient",
+  description: "Update a patient's details.",
+}
 
 export default async function EditPatientPage({
   params,
@@ -9,9 +12,5 @@ export default async function EditPatientPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const patient = patientRecords.find((p) => p.id === id)
-
-  if (!patient) notFound()
-
-  return <EditPatientPageUI patient={patient} />
+  return <EditPatientPageUI id={id} />
 }

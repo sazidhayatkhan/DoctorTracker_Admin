@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 
-import type { Datum } from "../analytics"
+import type { Datum } from "../schemas"
 
 /*
  * Lightweight chart primitives (HTML/CSS, no chart library).
@@ -31,6 +31,7 @@ export const ChartCard = ({
   description,
   children,
   table,
+  action,
   className,
 }: {
   title: string
@@ -38,15 +39,20 @@ export const ChartCard = ({
   children: ReactNode
   /** Accessible table view of the same data */
   table: Datum[]
+  /** Control shown at the right of the title, e.g. a period switcher */
+  action?: ReactNode
   className?: string
 }) => (
   <figure className={`border bg-card p-4 shadow-xs sm:p-5 ${className ?? ""}`}>
-    <figcaption className="mb-4">
-      <h2 className="text-sm font-semibold">{title}</h2>
-      {description && (
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-      )}
-    </figcaption>
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+      <figcaption>
+        <h2 className="text-sm font-semibold">{title}</h2>
+        {description && (
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        )}
+      </figcaption>
+      {action}
+    </div>
     {children}
     <table className="sr-only">
       <caption>{title}</caption>

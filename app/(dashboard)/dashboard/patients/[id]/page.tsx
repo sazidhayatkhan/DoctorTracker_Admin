@@ -1,7 +1,10 @@
-import { notFound } from "next/navigation"
+import type { Metadata } from "next"
+import PatientDetailsUI from "@/features/patients/details-patient/PatientDetailsUI"
 
-import PatientDetailsPageUI from "@/features/patients/PatientDetailsPageUI"
-import { patientRecords } from "@/features/patients/data"
+export const metadata: Metadata = {
+  title: "Patient Details",
+  description: "A patient's details and assigned doctors.",
+}
 
 export default async function PatientDetailsPage({
   params,
@@ -9,9 +12,5 @@ export default async function PatientDetailsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const patient = patientRecords.find((p) => p.id === id)
-
-  if (!patient) notFound()
-
-  return <PatientDetailsPageUI patient={patient} />
+  return <PatientDetailsUI id={id} />
 }

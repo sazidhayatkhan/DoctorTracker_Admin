@@ -1,14 +1,34 @@
+import Image from "next/image"
+import Link from "next/link"
+import { HeartPulse } from "lucide-react"
 
-import { SidebarHeader } from "@/components/ui/sidebar";
+import { SidebarHeader } from "@/components/ui/sidebar"
 
 const SideBarHeader = () => {
   return (
-    <SidebarHeader className="flex h-16 shrink-0 items-center justify-center border-b bg-red-100">
-      <h2 className="text-lg font-bold text-black">
-        MediCare Dashboard
-      </h2>
+    <SidebarHeader className="flex h-16 shrink-0 items-center justify-center border-b">
+      <Link
+        href="/dashboard"
+        aria-label="DoctorTracker dashboard"
+        className="flex items-center justify-center"
+      >
+        {/* Full logo when expanded */}
+        <Image
+          src="/images/doctor_tracker_logo.png"
+          alt="DoctorTracker"
+          width={1000}
+          height={331}
+          priority
+          className="h-10 w-auto group-data-[collapsible=icon]:hidden"
+        />
+        {/* Icon-only sidebar is too narrow for the wordmark */}
+        <HeartPulse
+          aria-hidden
+          className="hidden size-5 text-[#36ab9f] group-data-[collapsible=icon]:block"
+        />
+      </Link>
     </SidebarHeader>
-  );
-};
+  )
+}
 
-export default SideBarHeader;
+export default SideBarHeader

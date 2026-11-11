@@ -1,16 +1,30 @@
+"use client"
 
-"use client";
+import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { ChevronDown, LogOut, UserRound } from "lucide-react"
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
-
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { getInitials } from "@/features/doctors/utils"
+import { useAuthStore } from "@/stores/auth.store"
 
 const TopBar = () => {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter()
+  const user = useAuthStore((s) => s.user)
+  const signOut = useAuthStore((s) => s.signOut)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isConfirmingSignOut, setIsConfirmingSignOut] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -19,27 +33,33 @@ const TopBar = () => {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const handleProfile = () => {
-    setIsOpen(false);
-    router.push("/dashboard/profile");
-  };
+    setIsOpen(false)
+    router.push("/dashboard/profile")
+  }
 
-  const handleSignOut = () => {
-    setIsOpen(false);
-    // TODO: Clear authentication session/token
-    router.push("/login");
-  };
+  const handleSignOutClick = () => {
+    setIsOpen(false)
+    setIsConfirmingSignOut(true)
+  }
+
+  const handleConfirmSignOut = () => {
+    setIsConfirmingSignOut(false)
+    // Clears the session and every cached response; AuthGuard then
+    // redirects to the start page.
+    signOut()
+  }
 
   return (
     <header className="relative z-10 flex h-16 w-full shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
@@ -56,11 +76,11 @@ const TopBar = () => {
           className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-muted"
         >
           <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            AD
+            {user ? getInitials(user.name) || "AD" : "AD"}
           </div>
 
           <span className="hidden text-sm font-medium sm:block">
-            Admin
+            {user?.name ?? "Admin"}
           </span>
 
           <ChevronDown
@@ -72,10 +92,8 @@ const TopBar = () => {
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border bg-background p-1 shadow-lg">
-            <div className="px-3 py-2 text-sm font-semibold">
-              My Account
-            </div>
+          <div className="absolute top-full right-0 z-50 mt-2 w-48 rounded-lg border bg-background p-1 shadow-lg">
+            <div className="px-3 py-2 text-sm font-semibold">My Account</div>
 
             <div className="my-1 border-t" />
 
@@ -92,7 +110,7 @@ const TopBar = () => {
 
             <button
               type="button"
-              onClick={handleSignOut}
+              onClick={handleSignOutClick}
               className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-muted"
             >
               <LogOut className="size-4" />
@@ -101,8 +119,29 @@ const TopBar = () => {
           </div>
         )}
       </div>
-    </header>
-  );
-};
 
-export default TopBar;
+      <Dialog open={isConfirmingSignOut} onOpenChange={setIsConfirmingSignOut}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Sign out?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to sign out? You&apos;ll need to log in
+              again to access the dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Cancel
+            </DialogClose>
+            <Button variant="destructive" onClick={handleConfirmSignOut}>
+              <LogOut />
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </header>
+  )
+}
+
+export default TopBar
