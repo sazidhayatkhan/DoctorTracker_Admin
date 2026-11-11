@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, type FormEvent } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
@@ -26,7 +27,7 @@ const LoginPageUI = () => {
 
   const [values, setValues] = useState<LoginForm>({ email: "", password: "" })
   const [errors, setErrors] = useState<Errors>({})
-  
+
   useEffect(() => {
     if (hydrated && token) router.replace(next)
   }, [hydrated, token, next, router])
@@ -61,7 +62,16 @@ const LoginPageUI = () => {
   }
 
   return (
-    <div className="flex min-h-svh">
+    <div className="relative flex min-h-svh">
+      <Image
+        src="/images/doctor_tracker_logo.png"
+        alt="DoctorTracker"
+        width={1000}
+        height={331}
+        priority
+        className="absolute top-4 right-4 h-9 w-auto sm:top-6 sm:right-8 sm:h-16"
+      />
+
       <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-muted/30 p-4 sm:p-8">
         <Link
           href="/"
@@ -77,10 +87,10 @@ const LoginPageUI = () => {
           className="w-full max-w-sm space-y-5 border bg-card p-6 shadow-xs"
         >
           <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            {/* <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
               <HeartPulse className="size-4" />
               DoctorTracker
-            </div>
+            </div> */}
             <h1 className="text-xl font-semibold tracking-tight">
               Admin sign in
             </h1>
