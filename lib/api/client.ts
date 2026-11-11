@@ -29,7 +29,10 @@ type RequestOptions<T> = {
 }
 
 const buildUrl = (path: string, query?: Record<string, QueryValue>) => {
-  const url = new URL(`${API_URL}${path}`)
+  // A relative API_URL ("/api", the proxy) resolves against this site.
+  const base =
+    typeof window === "undefined" ? "http://localhost" : window.location.origin
+  const url = new URL(`${API_URL}${path}`, base)
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined && value !== null && value !== "") {
       url.searchParams.set(key, String(value))
