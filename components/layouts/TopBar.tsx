@@ -46,7 +46,7 @@ const TopBar = () => {
 
   const handleProfile = () => {
     setIsOpen(false)
-    router.push("/dashboard/profile")
+    router.push("/profile")
   }
 
   const handleSignOutClick = () => {
