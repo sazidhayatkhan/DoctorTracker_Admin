@@ -1,13 +1,10 @@
-import React from "react"
+import Link from "next/link"
 import { Plus } from "lucide-react"
 
-import Link from "next/link"
-
 import { buttonVariants } from "@/components/ui/button"
-import DoctorTable from "./components/DoctorTable"
 import DoctorFilter from "./components/DoctorFilter"
 import DoctorStats from "./components/DoctorStats"
-import { doctors } from "./data"
+import DoctorTable from "./components/DoctorTable"
 
 const DoctorsPageUI = () => {
   return (
@@ -33,7 +30,7 @@ const DoctorsPageUI = () => {
         </Link>
       </div>
 
-      <DoctorStats doctors={doctors} />
+      <DoctorStats />
 
       {/* Directory card */}
       <section className="border bg-card shadow-xs">
@@ -47,7 +44,7 @@ const DoctorsPageUI = () => {
           <DoctorFilter />
         </div>
 
-        <DoctorTable doctors={doctors} />
+        <DoctorTable />
       </section>
     </div>
   )

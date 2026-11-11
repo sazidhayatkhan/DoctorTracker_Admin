@@ -2,7 +2,8 @@
 
 import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react"
 import Link from "next/link"
-import { Search, UserPlus, X } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { Loader2, Search, UserPlus, X } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,41 +15,39 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { patientRecords, type PatientRecord } from "@/features/patients/data"
-import { formatAge, getAge } from "@/features/patients/utils"
-import { Patient } from "../../data"
+import { fetchPatients } from "@/features/patients/api"
+import type { Patient } from "@/features/patients/schemas"
+import { formatAge, formatPatientCode } from "@/features/patients/utils"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { ApiError, getErrorMessage } from "@/lib/api/errors"
+import { patientKeys } from "@/lib/query-keys"
+import { useAssignPatient } from "../../queries"
 import { getInitials } from "../../utils"
-
-
-export type NewPatient = Pick<
-  Patient,
-  "name" | "age" | "gender" | "phone" | "condition"
->
 
 type AddPatientSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  doctorId: string
   doctorName: string
-  /** Phones of patients already under this doctor — shown but not selectable */
-  assignedPhones: string[]
-  onSubmit: (patient: NewPatient) => void
+  /** Patients already under this doctor — shown but not selectable */
+  assignedPatientIds: string[]
 }
 
 const AddPatientSheet = ({
   open,
   onOpenChange,
+  doctorId,
   doctorName,
-  assignedPhones,
-  onSubmit,
+  assignedPatientIds,
 }: AddPatientSheetProps) => (
   <Sheet open={open} onOpenChange={onOpenChange}>
     <SheetContent className="sm:max-w-md">
       {/* Content unmounts on close, so the form resets every time it opens */}
       <AssignPatientForm
+        doctorId={doctorId}
         doctorName={doctorName}
-        assignedPhones={assignedPhones}
-        onSubmit={onSubmit}
-        onCancel={() => onOpenChange(false)}
+        assignedPatientIds={assignedPatientIds}
+        onDone={() => onOpenChange(false)}
       />
     </SheetContent>
   </Sheet>
@@ -56,52 +55,51 @@ const AddPatientSheet = ({
 
 const CREATE_PATIENT_HREF = "/dashboard/patients/create"
 
-const normalizePhone = (phone: string) => phone.replace(/\D/g, "")
-
-// TODO: replace with an API search (GET /patients?q=...)
-const searchPatients = (query: string): PatientRecord[] => {
-  const q = query.trim().toLowerCase()
-  if (q.length < 2) return []
-  const digits = normalizePhone(q)
-
-  return patientRecords
-    .filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        (digits.length >= 3 && normalizePhone(p.phone).includes(digits))
-    )
-    .slice(0, 6)
-}
+/** How many search results the dropdown shows */
+const RESULT_LIMIT = 6
 
 type AssignPatientFormProps = Omit<
   AddPatientSheetProps,
   "open" | "onOpenChange"
 > & {
-  onCancel: () => void
+  onDone: () => void
 }
 
 const AssignPatientForm = ({
+  doctorId,
   doctorName,
-  assignedPhones,
-  onSubmit,
-  onCancel,
+  assignedPatientIds,
+  onDone,
 }: AssignPatientFormProps) => {
   const [query, setQuery] = useState("")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [selected, setSelected] = useState<PatientRecord | null>(null)
+  const [selected, setSelected] = useState<Patient | null>(null)
   const [condition, setCondition] = useState("")
   const [error, setError] = useState<string | null>(null)
 
-  const assigned = useMemo(
-    () => new Set(assignedPhones.map(normalizePhone)),
-    [assignedPhones]
-  )
-  const results = useMemo(() => searchPatients(query), [query])
-  const isAssigned = (p: PatientRecord) => assigned.has(normalizePhone(p.phone))
+  const assignPatient = useAssignPatient(doctorId)
 
-  const selectPatient = (patient: PatientRecord) => {
+  // Server-side search (name, patient code, phone, email), after typing pauses.
+  const searchTerm = useDebouncedValue(query.trim(), 250)
+  const searchParams = { q: searchTerm, page: 1, limit: RESULT_LIMIT }
+  const search = useQuery({
+    queryKey: patientKeys.list(searchParams),
+    queryFn: ({ signal }) => fetchPatients(searchParams, signal),
+    enabled: searchTerm.length >= 2,
+  })
+  const results = useMemo(() => search.data?.items ?? [], [search.data])
+  const isSearching =
+    query.trim().length >= 2 &&
+    (search.isFetching || searchTerm !== query.trim())
+
+  const assigned = useMemo(
+    () => new Set(assignedPatientIds),
+    [assignedPatientIds]
+  )
+  const isAssigned = (p: Patient) => assigned.has(p.id)
+
+  const selectPatient = (patient: Patient) => {
     if (isAssigned(patient)) return
     setSelected(patient)
     setQuery("")
@@ -143,14 +141,18 @@ const AssignPatientForm = ({
       return
     }
 
-    // TODO: POST /doctors/:id/patients { patientId: selected.id, condition }
-    onSubmit({
-      name: selected.name,
-      age: getAge(selected.birthDate),
-      gender: selected.gender,
-      phone: selected.phone,
-      condition: condition.trim(),
-    })
+    assignPatient.mutate(
+      { patientId: selected.id, condition: condition.trim() },
+      {
+        onSuccess: onDone,
+        onError: (err) =>
+          setError(
+            err instanceof ApiError && err.status === 409
+              ? `${selected.name} is already assigned to ${doctorName}.`
+              : getErrorMessage(err)
+          ),
+      }
+    )
   }
 
   const showDropdown = isDropdownOpen && query.trim().length >= 2
@@ -179,7 +181,9 @@ const AssignPatientForm = ({
                     {selected.name}
                   </p>
                   <p className="truncate text-xs text-muted-foreground tabular-nums">
-                    <span className="font-mono">{selected.id}</span>
+                    <span className="font-mono">
+                      {formatPatientCode(selected.patientCode)}
+                    </span>
                     {" · "}
                     {formatAge(selected.birthDate)} · {selected.gender}
                   </p>
@@ -192,6 +196,7 @@ const AssignPatientForm = ({
                   variant="ghost"
                   size="icon-sm"
                   onClick={clearSelection}
+                  disabled={assignPatient.isPending}
                   aria-label="Choose a different patient"
                   title="Choose a different patient"
                 >
@@ -208,6 +213,7 @@ const AssignPatientForm = ({
                 id="condition"
                 placeholder="e.g. Hypertension"
                 value={condition}
+                disabled={assignPatient.isPending}
                 onChange={(e) => {
                   setCondition(e.target.value)
                   setError(null)
@@ -234,7 +240,7 @@ const AssignPatientForm = ({
                   autoComplete="off"
                   autoFocus
                   placeholder="Search by name, phone or patient ID..."
-                  className="pl-9"
+                  className="pr-9 pl-9"
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value)
@@ -246,14 +252,24 @@ const AssignPatientForm = ({
                   onBlur={() => setIsDropdownOpen(false)}
                   onKeyDown={handleSearchKeyDown}
                 />
+                {isSearching && (
+                  <Loader2
+                    className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
+                    aria-label="Searching"
+                  />
+                )}
 
-                {showDropdown && (
+                {showDropdown && !isSearching && (
                   <div
                     id="patient-search-results"
                     role="listbox"
                     className="absolute inset-x-0 top-full z-10 mt-1 max-h-72 overflow-y-auto border bg-popover p-1 shadow-lg"
                   >
-                    {results.length === 0 ? (
+                    {search.isError ? (
+                      <p className="px-3 py-4 text-center text-xs text-destructive">
+                        {getErrorMessage(search.error)}
+                      </p>
+                    ) : results.length === 0 ? (
                       <div className="space-y-2 px-3 py-4 text-center">
                         <p className="text-xs text-muted-foreground">
                           No patient matches &ldquo;{query.trim()}&rdquo;.
@@ -293,8 +309,8 @@ const AssignPatientForm = ({
                                 {patient.name}
                               </p>
                               <p className="truncate text-xs text-muted-foreground tabular-nums">
-                                {patient.phone} · {formatAge(patient.birthDate)}{" "}
-                                · {patient.gender}
+                                {formatPatientCode(patient.patientCode)} ·{" "}
+                                {patient.phone} · {formatAge(patient.birthDate)}
                               </p>
                             </div>
                             {disabled && (
@@ -340,10 +356,11 @@ const AssignPatientForm = ({
       </div>
 
       <SheetFooter className="flex-row justify-end border-t">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onDone}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!selected}>
+        <Button type="submit" disabled={!selected || assignPatient.isPending}>
+          {assignPatient.isPending && <Loader2 className="animate-spin" />}
           Assign Patient
         </Button>
       </SheetFooter>

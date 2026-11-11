@@ -9,6 +9,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query"
 
+import { analyticsKeys, doctorKeys, patientKeys } from "@/lib/query-keys"
 import {
   createPatient,
   deletePatient,
@@ -24,22 +25,10 @@ import type {
   PatientPage,
 } from "./schemas"
 
-/**
- * Query keys, from broad to specific, so one call can invalidate a whole
- * family: invalidate(patientKeys.lists()) refreshes every page/filter combo.
- */
-export const patientKeys = {
-  all: ["patients"] as const,
-  lists: () => [...patientKeys.all, "list"] as const,
-  list: (params: PatientListParams) => [...patientKeys.lists(), params] as const,
-  details: () => [...patientKeys.all, "detail"] as const,
-  detail: (id: string) => [...patientKeys.details(), id] as const,
-  doctors: (id: string) => [...patientKeys.detail(id), "doctors"] as const,
-}
-
 const listQueryOptions = (params: PatientListParams) => ({
   queryKey: patientKeys.list(params),
-  queryFn: ({ signal }: { signal: AbortSignal }) => fetchPatients(params, signal),
+  queryFn: ({ signal }: { signal: AbortSignal }) =>
+    fetchPatients(params, signal),
 })
 
 const detailQueryOptions = (id: string) => ({
@@ -117,6 +106,7 @@ export const useCreatePatient = () => {
     mutationFn: createPatient,
     onSuccess: (patient) => {
       queryClient.setQueryData(patientKeys.detail(patient.id), patient)
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
       return queryClient.invalidateQueries({ queryKey: patientKeys.lists() })
     },
   })
@@ -129,6 +119,8 @@ export const useUpdatePatient = (id: string) => {
     mutationFn: (data: PatientFormData) => updatePatient(id, data),
     onSuccess: (patient) => {
       queryClient.setQueryData(patientKeys.detail(id), patient)
+      // Doctors' patient lists show this patient's details.
+      queryClient.invalidateQueries({ queryKey: doctorKeys.details() })
       return queryClient.invalidateQueries({ queryKey: patientKeys.lists() })
     },
   })
@@ -173,9 +165,15 @@ export const useDeletePatient = () => {
       queryClient.removeQueries({ queryKey: patientKeys.detail(id) })
     },
     // Refetch so pages re-flow (the next patient moves up into this page).
+    // Deleting a patient also removes their doctor assignments.
     onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: patientKeys.lists() }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: patientKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: doctorKeys.all }),
+        queryClient.invalidateQueries({ queryKey: analyticsKeys.all }),
+      ]),
   })
 }
 
+export { patientKeys }
 export type { Patient }

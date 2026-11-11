@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { useCreatePatient } from "../../queries"
 import type { Patient } from "../../schemas"
 import { formatPatientCode } from "../../utils"
-import FormBanner from "../../components/FormBanner"
+import FormBanner from "@/components/FormBanner"
 import PatientForm from "../../components/PatientForm"
 import { applyServerErrors } from "../../components/form-errors"
 

@@ -40,7 +40,14 @@ const buildUrl = (path: string, query?: Record<string, QueryValue>) => {
 
 export async function apiRequest<T>(
   path: string,
-  { method = "GET", query, body, schema, signal, auth = true }: RequestOptions<T>
+  {
+    method = "GET",
+    query,
+    body,
+    schema,
+    signal,
+    auth = true,
+  }: RequestOptions<T>
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" }
   if (body !== undefined) headers["Content-Type"] = "application/json"
@@ -79,7 +86,10 @@ export async function apiRequest<T>(
   const parsed = schema.safeParse(envelope.data.data)
   if (!parsed.success) {
     console.error(`Unexpected response shape from ${path}`, parsed.error)
-    throw new ApiError("The server sent an unexpected response.", response.status)
+    throw new ApiError(
+      "The server sent an unexpected response.",
+      response.status
+    )
   }
 
   return parsed.data

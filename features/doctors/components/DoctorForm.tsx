@@ -1,68 +1,59 @@
 "use client"
 
 import { useState, type FormEvent, type ReactNode } from "react"
+import { Building2, Stethoscope } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
+import { getErrorMessage } from "@/lib/api/errors"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import HospitalCombobox from "./HospitalCombobox"
-import { specializations, type Doctor } from "../data"
+  useCreateHospital,
+  useCreateSpecialization,
+  useHospitalOptions,
+  useSpecializationOptions,
+} from "../queries"
+import {
+  doctorFormSchema,
+  type DoctorFormValues,
+  type DoctorPayload,
+  type LookupOption,
+} from "../schemas"
+import LookupCombobox, { normalizeName } from "./LookupCombobox"
 
-/** The editable part of a doctor — shared by create and edit */
-export type DoctorFormData = Pick<
-  Doctor,
-  "name" | "email" | "phone" | "hospital" | "specialization"
->
+export type DoctorFormErrors = Partial<Record<keyof DoctorFormValues, string>>
 
-type FormValues = Omit<DoctorFormData, "specialization"> & {
-  specialization: string | null
+export type DoctorFormHelpers = {
+  /** Clear the form (handy after create) */
+  reset: () => void
+  /** Show errors from the server on their fields (e.g. a duplicate email) */
+  setErrors: (errors: DoctorFormErrors) => void
 }
 
-type Errors = Partial<Record<keyof FormValues, string>>
-
-const emptyValues: FormValues = {
+const emptyValues: DoctorFormValues = {
   name: "",
   email: "",
   phone: "",
   hospital: "",
-  specialization: null,
+  specialization: "",
 }
 
-const sameName = (a: string, b: string) =>
-  a.trim().toLowerCase() === b.trim().toLowerCase()
+const FIELDS = Object.keys(emptyValues) as (keyof DoctorFormValues)[]
 
-const validate = (v: FormValues, hospitals: string[]): Errors => {
-  const errors: Errors = {}
-  if (!v.name.trim()) errors.name = "Name is required."
-  if (!v.email.trim()) errors.email = "Email is required."
-  else if (!/^\S+@\S+\.\S+$/.test(v.email.trim()))
-    errors.email = "Enter a valid email address."
-  if (!v.phone.trim()) errors.phone = "Phone is required."
-  if (!v.specialization) errors.specialization = "Select a specialization."
-  if (!v.hospital.trim()) errors.hospital = "Hospital is required."
-  else if (!hospitals.some((h) => sameName(h, v.hospital)))
-    errors.hospital = "Pick a hospital from the list or add it as new."
-  return errors
-}
+const findByName = (options: LookupOption[] | undefined, name: string) =>
+  options?.find((o) => normalizeName(o.name) === normalizeName(name))
 
 type DoctorFormProps = {
   /** "page" = sectioned two-column layout, "dialog" = compact stacked layout */
   variant?: "page" | "dialog"
   /** Pre-fill for editing; omit for an empty create form */
-  initialValues?: DoctorFormData
-  /** Hospitals already in the system, used for suggestions */
-  hospitals: string[]
-  /** Called with validated data. `reset` clears the form (handy after create). */
-  onSubmit: (data: DoctorFormData, helpers: { reset: () => void }) => void
+  initialValues?: DoctorFormValues
+  /** Called with validated data, hospital/specialization resolved to IDs */
+  onSubmit: (data: DoctorPayload, helpers: DoctorFormHelpers) => void
   /** Rendered above the fields, e.g. a dialog header or success banner */
   header?: ReactNode
   /** Rendered below the fields — put the submit button here */
   footer: ReactNode
+  /** Disables every field, e.g. while saving */
+  disabled?: boolean
   /** Prefix for input ids, so two forms on one page don't clash */
   idPrefix?: string
   className?: string
@@ -71,55 +62,78 @@ type DoctorFormProps = {
 const DoctorForm = ({
   variant = "page",
   initialValues,
-  hospitals: initialHospitals,
   onSubmit,
   header,
   footer,
+  disabled = false,
   idPrefix = "doctor",
   className,
 }: DoctorFormProps) => {
-  // TODO: load hospitals from API and persist new ones (POST /hospitals)
-  const [hospitals, setHospitals] = useState(() =>
-    // make sure the doctor's current hospital is always a valid choice
-    initialValues?.hospital &&
-    !initialHospitals.some((h) => sameName(h, initialValues.hospital))
-      ? [...initialHospitals, initialValues.hospital]
-      : initialHospitals
-  )
-  const [values, setValues] = useState<FormValues>(initialValues ?? emptyValues)
-  const [errors, setErrors] = useState<Errors>({})
+  const hospitals = useHospitalOptions()
+  const specializations = useSpecializationOptions()
+  const createHospital = useCreateHospital()
+  const createSpecialization = useCreateSpecialization()
 
-  const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
+  const [values, setValues] = useState<DoctorFormValues>(
+    initialValues ?? emptyValues
+  )
+  const [errors, setErrors] = useState<DoctorFormErrors>({})
+
+  const set = <K extends keyof DoctorFormValues>(
+    key: K,
+    value: DoctorFormValues[K]
+  ) => {
     setValues((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
 
-  const handleAddHospital = (name: string) =>
-    setHospitals((prev) =>
-      prev.some((h) => sameName(h, name))
-        ? prev
-        : [...prev, name].sort((a, b) => a.localeCompare(b))
-    )
-
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const nextErrors = validate(values, hospitals)
+    const result = doctorFormSchema.safeParse(values)
+
+    const nextErrors: DoctorFormErrors = {}
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof DoctorFormValues
+        if (FIELDS.includes(field)) nextErrors[field] ??= issue.message
+      }
+    }
+
+    // Names must match an existing (or just-added) hospital / specialization.
+    const hospital = findByName(hospitals.data, values.hospital)
+    const specialization = findByName(
+      specializations.data,
+      values.specialization
+    )
+
+    if (!nextErrors.hospital && !hospital) {
+      nextErrors.hospital = hospitals.isPending
+        ? "Hospitals are still loading — try again in a moment."
+        : "Pick a hospital from the list or add it as new."
+    }
+    if (!nextErrors.specialization && !specialization) {
+      nextErrors.specialization = specializations.isPending
+        ? "Specializations are still loading — try again in a moment."
+        : "Pick a specialization from the list or add it as new."
+    }
+
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    if (!result.success || !hospital || !specialization) return
 
     onSubmit(
       {
-        name: values.name.trim(),
-        email: values.email.trim(),
-        phone: values.phone.trim(),
-        hospital: values.hospital.trim(),
-        specialization: values.specialization!,
+        name: result.data.name,
+        email: result.data.email,
+        phone: result.data.phone,
+        hospitalId: hospital.id,
+        specializationId: specialization.id,
       },
       {
         reset: () => {
           setValues(emptyValues)
           setErrors({})
         },
+        setErrors,
       }
     )
   }
@@ -131,94 +145,114 @@ const DoctorForm = ({
     <form onSubmit={handleSubmit} noValidate className={className}>
       {header}
 
-      <div className={isDialog ? "space-y-5 p-4" : undefined}>
-        <FormSection
-          variant={variant}
-          title="Personal information"
-          description="Basic contact details for the doctor."
-        >
-          <Field
-            label="Full name"
-            htmlFor={id("name")}
-            error={errors.name}
-            className="sm:col-span-2"
+      <fieldset disabled={disabled} className="contents">
+        <div className={isDialog ? "space-y-5 p-4" : undefined}>
+          <FormSection
+            variant={variant}
+            title="Personal information"
+            description="Basic contact details for the doctor."
           >
-            <Input
-              id={id("name")}
-              placeholder="e.g. Dr. John Smith"
-              value={values.name}
-              onChange={(e) => set("name", e.target.value)}
-              aria-invalid={!!errors.name || undefined}
-            />
-          </Field>
-          <Field label="Email" htmlFor={id("email")} error={errors.email}>
-            <Input
-              id={id("email")}
-              type="email"
-              placeholder="doctor@example.com"
-              value={values.email}
-              onChange={(e) => set("email", e.target.value)}
-              aria-invalid={!!errors.email || undefined}
-            />
-          </Field>
-          <Field label="Phone" htmlFor={id("phone")} error={errors.phone}>
-            <Input
-              id={id("phone")}
-              type="tel"
-              placeholder="+8801XXXXXXXXX"
-              value={values.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              aria-invalid={!!errors.phone || undefined}
-            />
-          </Field>
-        </FormSection>
-
-        <FormSection
-          variant={variant}
-          title="Professional details"
-          description="Where the doctor practises and their area of expertise."
-        >
-          <Field
-            label="Hospital"
-            htmlFor={id("hospital")}
-            error={errors.hospital}
-            hint={
-              isDialog
-                ? undefined
-                : "Choose an existing hospital, or add a new one if it isn't listed."
-            }
-          >
-            <HospitalCombobox
-              id={id("hospital")}
-              value={values.hospital}
-              onChange={(v) => set("hospital", v)}
-              hospitals={hospitals}
-              onAddHospital={handleAddHospital}
-              invalid={!!errors.hospital}
-            />
-          </Field>
-          <Field label="Specialization" error={errors.specialization}>
-            <Select
-              value={values.specialization}
-              onValueChange={(v) => set("specialization", v as string | null)}
+            <Field
+              label="Full name"
+              htmlFor={id("name")}
+              error={errors.name}
+              className="sm:col-span-2"
             >
-              <SelectTrigger
-                className="w-full"
-                aria-invalid={!!errors.specialization || undefined}
-              >
-                <SelectValue placeholder="Select specialization" />
-              </SelectTrigger>
-              <SelectContent>
-                {specializations.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        </FormSection>
-      </div>
+              <Input
+                id={id("name")}
+                placeholder="e.g. Dr. John Smith"
+                value={values.name}
+                onChange={(e) => set("name", e.target.value)}
+                aria-invalid={!!errors.name || undefined}
+              />
+            </Field>
+            <Field label="Email" htmlFor={id("email")} error={errors.email}>
+              <Input
+                id={id("email")}
+                type="email"
+                placeholder="doctor@example.com"
+                value={values.email}
+                onChange={(e) => set("email", e.target.value)}
+                aria-invalid={!!errors.email || undefined}
+              />
+            </Field>
+            <Field label="Phone" htmlFor={id("phone")} error={errors.phone}>
+              <Input
+                id={id("phone")}
+                type="tel"
+                placeholder="+8801XXXXXXXXX"
+                value={values.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                aria-invalid={!!errors.phone || undefined}
+              />
+            </Field>
+          </FormSection>
+
+          <FormSection
+            variant={variant}
+            title="Professional details"
+            description="Where the doctor practises and their area of expertise."
+          >
+            <Field
+              label="Hospital"
+              htmlFor={id("hospital")}
+              error={errors.hospital}
+              hint={
+                isDialog
+                  ? undefined
+                  : "Choose an existing hospital, or add a new one if it isn't listed."
+              }
+            >
+              <LookupCombobox
+                id={id("hospital")}
+                entityLabel="hospital"
+                icon={Building2}
+                value={values.hospital}
+                onChange={(v) => set("hospital", v)}
+                options={hospitals.data ?? []}
+                isLoading={hospitals.isPending}
+                isCreating={createHospital.isPending}
+                onCreate={(name) =>
+                  createHospital.mutate(name, {
+                    onError: (err) =>
+                      setErrors((prev) => ({
+                        ...prev,
+                        hospital: getErrorMessage(err),
+                      })),
+                  })
+                }
+                invalid={!!errors.hospital}
+              />
+            </Field>
+            <Field
+              label="Specialization"
+              htmlFor={id("specialization")}
+              error={errors.specialization}
+            >
+              <LookupCombobox
+                id={id("specialization")}
+                entityLabel="specialization"
+                icon={Stethoscope}
+                value={values.specialization}
+                onChange={(v) => set("specialization", v)}
+                options={specializations.data ?? []}
+                isLoading={specializations.isPending}
+                isCreating={createSpecialization.isPending}
+                onCreate={(name) =>
+                  createSpecialization.mutate(name, {
+                    onError: (err) =>
+                      setErrors((prev) => ({
+                        ...prev,
+                        specialization: getErrorMessage(err),
+                      })),
+                  })
+                }
+                invalid={!!errors.specialization}
+              />
+            </Field>
+          </FormSection>
+        </div>
+      </fieldset>
 
       {footer}
     </form>

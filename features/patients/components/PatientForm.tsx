@@ -114,120 +114,117 @@ const PatientForm = ({
     })
   }
 
-const id = (name: string) => `${idPrefix}-${name}`
+  const id = (name: string) => `${idPrefix}-${name}`
 
   return (
     <form onSubmit={handleSubmit} noValidate className={className}>
       {header}
 
       <fieldset disabled={disabled} className="contents">
-
-      <FormSection
-        title="Personal information"
-        description="Who the patient is."
-      >
-        <Field
-          label="Full name"
-          htmlFor={id("name")}
-          error={errors.name}
-          className="sm:col-span-2"
+        <FormSection
+          title="Personal information"
+          description="Who the patient is."
         >
-          <Input
-            id={id("name")}
-            placeholder="e.g. Karim Uddin"
-            value={values.name}
-            onChange={(e) => set("name", e.target.value)}
-            aria-invalid={!!errors.name || undefined}
-          />
-        </Field>
-        <Field
-          label="Date of birth"
-          htmlFor={id("birthDate")}
-          error={errors.birthDate}
-          hint={
-            values.birthDate && values.birthDate <= todayISO()
-              ? `Age: ${formatAge(values.birthDate)}`
-              : undefined
-          }
-        >
-          <Input
-            id={id("birthDate")}
-            type="date"
-            min="1900-01-01"
-            max={todayISO()}
-            value={values.birthDate}
-            onChange={(e) => set("birthDate", e.target.value)}
-            aria-invalid={!!errors.birthDate || undefined}
-          />
-        </Field>
-        <Field label="Gender" error={errors.gender}>
-          <Select
-            value={values.gender}
-            onValueChange={(v) =>
-              set("gender", v as Gender | null)
+          <Field
+            label="Full name"
+            htmlFor={id("name")}
+            error={errors.name}
+            className="sm:col-span-2"
+          >
+            <Input
+              id={id("name")}
+              placeholder="e.g. Karim Uddin"
+              value={values.name}
+              onChange={(e) => set("name", e.target.value)}
+              aria-invalid={!!errors.name || undefined}
+            />
+          </Field>
+          <Field
+            label="Date of birth"
+            htmlFor={id("birthDate")}
+            error={errors.birthDate}
+            hint={
+              values.birthDate && values.birthDate <= todayISO()
+                ? `Age: ${formatAge(values.birthDate)}`
+                : undefined
             }
           >
-            <SelectTrigger
-              className="w-full"
-              aria-invalid={!!errors.gender || undefined}
+            <Input
+              id={id("birthDate")}
+              type="date"
+              min="1900-01-01"
+              max={todayISO()}
+              value={values.birthDate}
+              onChange={(e) => set("birthDate", e.target.value)}
+              aria-invalid={!!errors.birthDate || undefined}
+            />
+          </Field>
+          <Field label="Gender" error={errors.gender}>
+            <Select
+              value={values.gender}
+              onValueChange={(v) => set("gender", v as Gender | null)}
             >
-              <SelectValue placeholder="Select gender" />
-            </SelectTrigger>
-            <SelectContent>
-              {GENDERS.map((g) => (
-                <SelectItem key={g} value={g}>
-                  {g}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </FormSection>
+              <SelectTrigger
+                className="w-full"
+                aria-invalid={!!errors.gender || undefined}
+              >
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                {GENDERS.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </FormSection>
 
-      <FormSection
-        title="Contact details"
-        description="How to reach the patient."
-      >
-        <Field label="Phone" htmlFor={id("phone")} error={errors.phone}>
-          <Input
-            id={id("phone")}
-            type="tel"
-            placeholder="+8801XXXXXXXXX"
-            value={values.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            aria-invalid={!!errors.phone || undefined}
-          />
-        </Field>
-        <Field
-          label="Email"
-          htmlFor={id("email")}
-          error={errors.email}
-          hint="Optional"
+        <FormSection
+          title="Contact details"
+          description="How to reach the patient."
         >
-          <Input
-            id={id("email")}
-            type="email"
-            placeholder="patient@example.com"
-            value={values.email}
-            onChange={(e) => set("email", e.target.value)}
-            aria-invalid={!!errors.email || undefined}
-          />
-        </Field>
-        <Field
-          label="Address"
-          htmlFor={id("address")}
-          error={errors.address}
-          className="sm:col-span-2"
-        >
-          <Input
-            id={id("address")}
-            placeholder="House, road, area, city"
-            value={values.address}
-            onChange={(e) => set("address", e.target.value)}
-            aria-invalid={!!errors.address || undefined}
-          />
-        </Field>
-      </FormSection>
+          <Field label="Phone" htmlFor={id("phone")} error={errors.phone}>
+            <Input
+              id={id("phone")}
+              type="tel"
+              placeholder="+8801XXXXXXXXX"
+              value={values.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              aria-invalid={!!errors.phone || undefined}
+            />
+          </Field>
+          <Field
+            label="Email"
+            htmlFor={id("email")}
+            error={errors.email}
+            hint="Optional"
+          >
+            <Input
+              id={id("email")}
+              type="email"
+              placeholder="patient@example.com"
+              value={values.email}
+              onChange={(e) => set("email", e.target.value)}
+              aria-invalid={!!errors.email || undefined}
+            />
+          </Field>
+          <Field
+            label="Address"
+            htmlFor={id("address")}
+            error={errors.address}
+            className="sm:col-span-2"
+          >
+            <Input
+              id={id("address")}
+              placeholder="House, road, area, city"
+              value={values.address}
+              onChange={(e) => set("address", e.target.value)}
+              aria-invalid={!!errors.address || undefined}
+            />
+          </Field>
+        </FormSection>
       </fieldset>
 
       {footer}

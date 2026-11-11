@@ -8,28 +8,9 @@ export type Doctor = {
   createdAt: string
 }
 
-export const specializations = [
-  "Cardiology",
-  "Neurology",
-  "Dermatology",
-  "Orthopedics",
-  "Pediatrics",
-  "Gynecology",
-  "General Medicine",
-]
-
-// Tinted badge colours per specialization (light + dark)
-export const specializationStyles: Record<string, string> = {
-  Cardiology: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  Neurology: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  Dermatology: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  Orthopedics: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  Pediatrics: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  Gynecology: "bg-pink-500/10 text-pink-700 dark:text-pink-300",
-  "General Medicine": "bg-slate-500/10 text-slate-700 dark:text-slate-300",
-}
-
-// TODO: replace with API data
+// MOCK DATA — the doctor pages now use the API (see ./api.ts, ./queries.ts).
+// Still used by the dashboard analytics until it's connected; delete this
+// file (and features/patients/data.ts) once it is.
 export const doctors: Doctor[] = [
   {
     id: 1,
@@ -107,7 +88,6 @@ export type Patient = {
   admittedAt: string
 }
 
-// TODO: replace with API data
 export const patients: Patient[] = [
   {
     id: 1,
@@ -210,9 +190,3 @@ export const patients: Patient[] = [
     admittedAt: "2026-09-12",
   },
 ]
-
-/** Unique hospitals already registered via doctors, alphabetical */
-export const getHospitals = () =>
-  [...new Set(doctors.map((d) => d.hospital))].sort((a, b) =>
-    a.localeCompare(b)
-  )

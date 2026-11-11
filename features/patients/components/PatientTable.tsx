@@ -32,19 +32,13 @@ import {
 import { formatDate, getInitials } from "@/features/doctors/utils"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getErrorMessage } from "@/lib/api/errors"
-import {
-  useDeletePatient,
-  usePatients,
-  usePrefetchPatient,
-} from "../queries"
+import { getPageWindow } from "@/lib/pagination"
+import { useDeletePatient, usePatients, usePrefetchPatient } from "../queries"
 import type { Gender } from "../schemas"
 import { usePatientListStore } from "../store"
 import { formatAge, formatPatientCode } from "../utils"
 
 const ITEMS_PER_PAGE = 8
-
-/** Most page-number buttons shown at once */
-const PAGE_WINDOW = 5
 
 const headClass =
   "text-xs font-medium tracking-wide text-muted-foreground uppercase"
@@ -63,31 +57,37 @@ const genderStyles: Record<Gender, string> = {
   Other: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
 }
 
-/** Up to PAGE_WINDOW page numbers centred on the current page */
-const getPageWindow = (page: number, totalPages: number) => {
-  const size = Math.min(PAGE_WINDOW, totalPages)
-  const start = Math.min(
-    Math.max(1, page - Math.floor(size / 2)),
-    totalPages - size + 1
-  )
-  return Array.from({ length: size }, (_, i) => start + i)
-}
-
 const PatientTable = () => {
-  const { search, from, to, page, setSearch, setFrom, setTo, setPage, clearFilters } =
-    usePatientListStore()
+  const {
+    search,
+    from,
+    to,
+    page,
+    setSearch,
+    setFrom,
+    setTo,
+    setPage,
+    clearFilters,
+  } = usePatientListStore()
 
   // Wait for typing to pause before querying the server.
   const debouncedSearch = useDebouncedValue(search.trim(), 300)
 
-  const { data, isPending, isError, error, isFetching, isPlaceholderData, refetch } =
-    usePatients({
-      q: debouncedSearch.length >= 2 ? debouncedSearch : undefined,
-      from: from || undefined,
-      to: to || undefined,
-      page,
-      limit: ITEMS_PER_PAGE,
-    })
+  const {
+    data,
+    isPending,
+    isError,
+    error,
+    isFetching,
+    isPlaceholderData,
+    refetch,
+  } = usePatients({
+    q: debouncedSearch.length >= 2 ? debouncedSearch : undefined,
+    from: from || undefined,
+    to: to || undefined,
+    page,
+    limit: ITEMS_PER_PAGE,
+  })
 
   const deletePatient = useDeletePatient()
   const prefetchPatient = usePrefetchPatient()

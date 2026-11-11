@@ -2,43 +2,55 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
+import FormBanner from "@/components/FormBanner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import DoctorForm from "../../components/DoctorForm"
+import { applyServerErrors } from "../../components/form-errors"
+import { useCreateDoctor } from "../../queries"
+import type { Doctor } from "../../schemas"
 
-type CreateDoctorFormProps = {
-  hospitals: string[]
-}
-
-const CreateDoctorForm = ({ hospitals }: CreateDoctorFormProps) => {
-  const [createdName, setCreatedName] = useState<string | null>(null)
+const CreateDoctorForm = () => {
+  const createDoctor = useCreateDoctor()
+  const [created, setCreated] = useState<Doctor | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   return (
     <DoctorForm
       variant="page"
       idPrefix="create-doctor"
-      hospitals={hospitals}
       className="border bg-card shadow-xs"
-      onSubmit={(data, { reset }) => {
-        // TODO: POST /doctors
-        setCreatedName(data.name)
-        reset()
+      disabled={createDoctor.isPending}
+      onSubmit={(data, { reset, setErrors }) => {
+        setFormError(null)
+        setCreated(null)
+
+        createDoctor.mutate(data, {
+          onSuccess: (doctor) => {
+            setCreated(doctor)
+            reset()
+          },
+          onError: (error) => setFormError(applyServerErrors(error, setErrors)),
+        })
       }}
       header={
-        createdName && (
-          <div className="flex items-center gap-2 border-b border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-            <CheckCircle2 className="size-4 shrink-0" />
-            <span className="flex-1">
-              <strong>{createdName}</strong> was created successfully.
-            </span>
-            <Link
-              href="/dashboard/doctors"
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              View doctors
-            </Link>
-          </div>
+        formError ? (
+          <FormBanner tone="error">{formError}</FormBanner>
+        ) : (
+          created && (
+            <FormBanner tone="success">
+              <span className="flex-1">
+                <strong>{created.name}</strong> was created successfully.
+              </span>
+              <Link
+                href={`/dashboard/doctors/${created.id}`}
+                className="font-medium underline-offset-4 hover:underline"
+              >
+                View doctor
+              </Link>
+            </FormBanner>
+          )
         )
       }
       footer={
@@ -49,7 +61,8 @@ const CreateDoctorForm = ({ hospitals }: CreateDoctorFormProps) => {
           >
             Cancel
           </Link>
-          <Button type="submit" size="lg">
+          <Button type="submit" size="lg" disabled={createDoctor.isPending}>
+            {createDoctor.isPending && <Loader2 className="animate-spin" />}
             Create Doctor
           </Button>
         </div>

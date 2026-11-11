@@ -1,16 +1,15 @@
-
 export type IconName =
   | "LayoutDashboard"
   | "Stethoscope"
   | "UserPlus"
   | "ClipboardPlus"
   | "Users"
-  | "UserRoundPlus";
+  | "UserRoundPlus"
 
 export interface MenuItem {
-  title: string;
-  url: string;
-  icon: IconName;
+  title: string
+  url: string
+  icon: IconName
 }
 
 export const dashboardNavigation: MenuItem[] = [
@@ -19,7 +18,7 @@ export const dashboardNavigation: MenuItem[] = [
     url: "/dashboard",
     icon: "LayoutDashboard",
   },
-];
+]
 
 export const doctorNavigation: MenuItem[] = [
   {
@@ -32,7 +31,7 @@ export const doctorNavigation: MenuItem[] = [
     url: "/dashboard/doctors/create",
     icon: "UserPlus",
   },
-];
+]
 
 export const patientNavigation: MenuItem[] = [
   {
@@ -45,4 +44,4 @@ export const patientNavigation: MenuItem[] = [
     url: "/dashboard/patients/create",
     icon: "UserRoundPlus",
   },
-];
+]

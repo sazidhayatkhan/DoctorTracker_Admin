@@ -2,8 +2,8 @@ import Link from "next/link"
 import { Building2, CalendarDays, Mail, Pencil, Phone } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
-import { Doctor, specializationStyles } from "../../data"
-import { formatDate, getInitials } from "../../utils"
+import type { Doctor } from "../../schemas"
+import { formatDate, getInitials, specializationClass } from "../../utils"
 
 type DoctorProfileCardProps = {
   doctor: Doctor
@@ -15,7 +15,7 @@ const DoctorProfileCard = ({ doctor }: DoctorProfileCardProps) => {
   const details = [
     { icon: Mail, label: "Email", value: doctor.email },
     { icon: Phone, label: "Phone", value: doctor.phone },
-    { icon: Building2, label: "Hospital", value: doctor.hospital },
+    { icon: Building2, label: "Hospital", value: doctor.hospital?.name ?? "—" },
     {
       icon: CalendarDays,
       label: "Joined",
@@ -35,12 +35,11 @@ const DoctorProfileCard = ({ doctor }: DoctorProfileCardProps) => {
               {doctor.name}
             </h1>
             <span
-              className={`inline-flex px-2.5 py-1 text-xs font-medium ${
-                specializationStyles[doctor.specialization] ??
-                "bg-primary/10 text-primary"
-              }`}
+              className={`inline-flex px-2.5 py-1 text-xs font-medium ${specializationClass(
+                doctor.specialization?.name
+              )}`}
             >
-              {doctor.specialization}
+              {doctor.specialization?.name ?? "—"}
             </span>
           </div>
           {/* Mobile edit button sits beside the name */}

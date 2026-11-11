@@ -2,50 +2,62 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
+import FormBanner from "@/components/FormBanner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import DoctorForm from "../../components/DoctorForm"
-import type { Doctor } from "../../data"
+import { applyServerErrors } from "../../components/form-errors"
+import { useUpdateDoctor } from "../../queries"
+import type { Doctor } from "../../schemas"
 
 type EditDoctorFormProps = {
   doctor: Doctor
-  hospitals: string[]
 }
 
-const EditDoctorForm = ({ doctor, hospitals }: EditDoctorFormProps) => {
+const EditDoctorForm = ({ doctor }: EditDoctorFormProps) => {
+  const updateDoctor = useUpdateDoctor(doctor.id)
   const [isSaved, setIsSaved] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
   const profileHref = `/dashboard/doctors/${doctor.id}`
 
   return (
     <DoctorForm
       variant="page"
       idPrefix="edit-doctor"
-      hospitals={hospitals}
       initialValues={{
         name: doctor.name,
         email: doctor.email,
         phone: doctor.phone,
-        hospital: doctor.hospital,
-        specialization: doctor.specialization,
+        hospital: doctor.hospital?.name ?? "",
+        specialization: doctor.specialization?.name ?? "",
       }}
       className="border bg-card shadow-xs"
-      onSubmit={() => {
-        // TODO: PATCH /doctors/:id, then router.push(profileHref)
-        setIsSaved(true)
+      disabled={updateDoctor.isPending}
+      onSubmit={(data, { setErrors }) => {
+        setFormError(null)
+        setIsSaved(false)
+
+        updateDoctor.mutate(data, {
+          onSuccess: () => setIsSaved(true),
+          onError: (error) => setFormError(applyServerErrors(error, setErrors)),
+        })
       }}
       header={
-        isSaved && (
-          <div className="flex items-center gap-2 border-b border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-            <CheckCircle2 className="size-4 shrink-0" />
-            <span className="flex-1">Changes saved successfully.</span>
-            <Link
-              href={profileHref}
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              View profile
-            </Link>
-          </div>
+        formError ? (
+          <FormBanner tone="error">{formError}</FormBanner>
+        ) : (
+          isSaved && (
+            <FormBanner tone="success">
+              <span className="flex-1">Changes saved successfully.</span>
+              <Link
+                href={profileHref}
+                className="font-medium underline-offset-4 hover:underline"
+              >
+                View profile
+              </Link>
+            </FormBanner>
+          )
         )
       }
       footer={
@@ -56,7 +68,8 @@ const EditDoctorForm = ({ doctor, hospitals }: EditDoctorFormProps) => {
           >
             Cancel
           </Link>
-          <Button type="submit" size="lg">
+          <Button type="submit" size="lg" disabled={updateDoctor.isPending}>
+            {updateDoctor.isPending && <Loader2 className="animate-spin" />}
             Save Changes
           </Button>
         </div>

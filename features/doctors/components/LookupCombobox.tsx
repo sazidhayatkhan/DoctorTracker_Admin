@@ -1,59 +1,76 @@
 "use client"
 
 import { useId, useMemo, useState, type KeyboardEvent } from "react"
-import { Building2, Check, Plus } from "lucide-react"
+import { Check, Loader2, Plus, type LucideIcon } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
+import type { LookupOption } from "../schemas"
 
-type HospitalComboboxProps = {
+type LookupComboboxProps = {
   id?: string
+  /** The typed / chosen name */
   value: string
   onChange: (value: string) => void
-  /** Hospitals already in the system — used for suggestions */
-  hospitals: string[]
-  /** Called when the user confirms a hospital that isn't in the list yet */
-  onAddHospital: (name: string) => void
+  /** Existing choices, e.g. every hospital */
+  options: LookupOption[]
+  /** Saves a name that isn't in the list yet (e.g. POST /hospitals) */
+  onCreate: (name: string) => void
+  isCreating?: boolean
+  isLoading?: boolean
+  /** Singular, lowercase: "hospital", "specialization" */
+  entityLabel: string
+  icon: LucideIcon
+  placeholder?: string
   invalid?: boolean
 }
 
-const normalize = (s: string) => s.trim().replace(/\s+/g, " ").toLowerCase()
+export const normalizeName = (s: string) =>
+  s.trim().replace(/\s+/g, " ").toLowerCase()
 
-const HospitalCombobox = ({
+/** Type to filter existing options, or add the typed name as a new one */
+const LookupCombobox = ({
   id,
   value,
   onChange,
-  hospitals,
-  onAddHospital,
+  options,
+  onCreate,
+  isCreating = false,
+  isLoading = false,
+  entityLabel,
+  icon: Icon,
+  placeholder,
   invalid,
-}: HospitalComboboxProps) => {
+}: LookupComboboxProps) => {
   const listId = useId()
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const query = normalize(value)
+  const query = normalizeName(value)
   const suggestions = useMemo(
     () =>
       (query
-        ? hospitals.filter((h) => normalize(h).includes(query))
-        : hospitals
+        ? options.filter((o) => normalizeName(o.name).includes(query))
+        : options
       ).slice(0, 8),
-    [hospitals, query]
+    [options, query]
   )
-  const exactMatch = hospitals.find((h) => normalize(h) === query)
-  const canAdd = query.length > 0 && !exactMatch
+  const exactMatch = options.find((o) => normalizeName(o.name) === query)
+  const canAdd = query.length > 0 && !exactMatch && !isLoading
 
   // Options = suggestions + (optional) "add new" row at the end
   const optionCount = suggestions.length + (canAdd ? 1 : 0)
 
-  const select = (hospital: string) => {
-    onChange(hospital)
+  const select = (name: string) => {
+    onChange(name)
     setIsOpen(false)
   }
 
   const addNew = () => {
+    if (isCreating) return
     const name = value.trim().replace(/\s+/g, " ")
-    onAddHospital(name)
-    select(name)
+    onChange(name)
+    onCreate(name)
+    setIsOpen(false)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -67,7 +84,8 @@ const HospitalCombobox = ({
         setActiveIndex((i) => (i - 1 + optionCount) % optionCount)
     } else if (event.key === "Enter" && isOpen && optionCount) {
       event.preventDefault()
-      if (activeIndex < suggestions.length) select(suggestions[activeIndex])
+      if (activeIndex < suggestions.length)
+        select(suggestions[activeIndex].name)
       else addNew()
     } else if (event.key === "Escape") {
       setIsOpen(false)
@@ -81,7 +99,7 @@ const HospitalCombobox = ({
 
   return (
     <div className="relative">
-      <Building2 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Icon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         id={id}
         role="combobox"
@@ -90,9 +108,10 @@ const HospitalCombobox = ({
         aria-autocomplete="list"
         aria-invalid={invalid || undefined}
         autoComplete="off"
-        placeholder="Start typing a hospital name..."
-        className="pl-9"
+        placeholder={placeholder ?? `Start typing a ${entityLabel} name...`}
+        className="pr-9 pl-9"
         value={value}
+        disabled={isCreating}
         onChange={(e) => {
           onChange(e.target.value)
           setActiveIndex(0)
@@ -102,6 +121,12 @@ const HospitalCombobox = ({
         onBlur={() => setIsOpen(false)}
         onKeyDown={handleKeyDown}
       />
+      {(isCreating || isLoading) && (
+        <Loader2
+          className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
+          aria-label={isCreating ? `Adding ${entityLabel}` : "Loading"}
+        />
+      )}
 
       {isOpen && optionCount > 0 && (
         <div
@@ -111,26 +136,29 @@ const HospitalCombobox = ({
         >
           {suggestions.length > 0 && (
             <p className="px-2.5 pt-1 pb-1.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-              Existing hospitals
+              Existing{" "}
+              {entityLabel === "specialization"
+                ? "specializations"
+                : `${entityLabel}s`}
             </p>
           )}
 
-          {suggestions.map((hospital, index) => {
-            const isSelected = normalize(hospital) === query
+          {suggestions.map((option, index) => {
+            const isSelected = normalizeName(option.name) === query
             return (
               <button
-                key={hospital}
+                key={option.id}
                 type="button"
                 role="option"
                 aria-selected={index === activeIndex}
                 // keep focus in the input so onBlur doesn't close first
                 onMouseDown={(e) => e.preventDefault()}
                 onMouseEnter={() => setActiveIndex(index)}
-                onClick={() => select(hospital)}
+                onClick={() => select(option.name)}
                 className={optionClass(index)}
               >
-                <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                <span className="flex-1 truncate">{hospital}</span>
+                <Icon className="size-4 shrink-0 text-muted-foreground" />
+                <span className="flex-1 truncate">{option.name}</span>
                 {isSelected && <Check className="size-4 text-primary" />}
               </button>
             )
@@ -143,7 +171,7 @@ const HospitalCombobox = ({
               )}
               {suggestions.length === 0 && (
                 <p className="px-2.5 pt-1 pb-1.5 text-xs text-muted-foreground">
-                  No hospital matches &ldquo;{value.trim()}&rdquo;.
+                  No {entityLabel} matches &ldquo;{value.trim()}&rdquo;.
                 </p>
               )}
               <button
@@ -157,7 +185,7 @@ const HospitalCombobox = ({
               >
                 <Plus className="size-4 shrink-0" />
                 <span className="truncate">
-                  Add &ldquo;{value.trim()}&rdquo; as new hospital
+                  Add &ldquo;{value.trim()}&rdquo; as new {entityLabel}
                 </span>
               </button>
             </>
@@ -168,4 +196,4 @@ const HospitalCombobox = ({
   )
 }
 
-export default HospitalCombobox
+export default LookupCombobox

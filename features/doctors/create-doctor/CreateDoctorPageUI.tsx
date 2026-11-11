@@ -1,12 +1,9 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-import { getHospitals } from "../data"
 import CreateDoctorForm from "./components/CreateDoctorForm"
 
 const CreateDoctorPageUI = () => {
-  const hospitals = getHospitals()
-
   return (
     <div className="max-w-4xl space-y-6">
       <div className="space-y-3">
@@ -25,7 +22,7 @@ const CreateDoctorPageUI = () => {
         </div>
       </div>
 
-      <CreateDoctorForm hospitals={hospitals} />
+      <CreateDoctorForm />
     </div>
   )
 }

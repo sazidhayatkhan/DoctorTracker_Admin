@@ -4,8 +4,11 @@ import Link from "next/link"
 import { Building2, ChevronRight, Stethoscope } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { specializationStyles } from "@/features/doctors/data"
-import { formatDate, getInitials } from "@/features/doctors/utils"
+import {
+  formatDate,
+  getInitials,
+  specializationClass,
+} from "@/features/doctors/utils"
 import { getErrorMessage } from "@/lib/api/errors"
 import { usePatientDoctors } from "../../queries"
 
@@ -14,8 +17,13 @@ type AssignedDoctorsProps = {
 }
 
 const AssignedDoctors = ({ patientId }: AssignedDoctorsProps) => {
-  const { data: assignments, isPending, isError, error, refetch } =
-    usePatientDoctors(patientId)
+  const {
+    data: assignments,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = usePatientDoctors(patientId)
 
   return (
     <section className="border bg-card shadow-xs">
@@ -78,10 +86,9 @@ const AssignedDoctors = ({ patientId }: AssignedDoctorsProps) => {
                   </div>
 
                   <span
-                    className={`inline-block px-1.5 py-0.5 text-[11px] font-medium ${
-                      specializationStyles[doctor.specialization] ??
-                      "bg-primary/10 text-primary"
-                    }`}
+                    className={`inline-block px-1.5 py-0.5 text-[11px] font-medium ${specializationClass(
+                      doctor.specialization
+                    )}`}
                   >
                     {doctor.specialization}
                   </span>

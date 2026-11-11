@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { optionalNamedRefSchema, paginationSchema } from "@/lib/api/schemas"
+
 import { getAge, todayISO } from "./utils"
 
 export const GENDERS = ["Male", "Female", "Other"] as const
@@ -33,26 +35,12 @@ export const patientSchema = z
 
 export type Patient = z.output<typeof patientSchema>
 
-export const paginationSchema = z.object({
-  page: z.number(),
-  limit: z.number(),
-  total: z.number(),
-  totalPages: z.number(),
-  hasNextPage: z.boolean(),
-  hasPrevPage: z.boolean(),
-})
-
 export const patientPageSchema = z.object({
   items: z.array(patientSchema),
   pagination: paginationSchema,
 })
 
 export type PatientPage = z.output<typeof patientPageSchema>
-
-const namedRefSchema = z
-  .object({ _id: z.string(), name: z.string() })
-  .nullable()
-  .optional()
 
 /** A doctor this patient is assigned to, with the reason for the visit */
 export const patientAssignmentSchema = z
@@ -63,8 +51,8 @@ export const patientAssignmentSchema = z
     doctor: z.object({
       _id: z.string(),
       name: z.string(),
-      hospital: namedRefSchema,
-      specialization: namedRefSchema,
+      hospital: optionalNamedRefSchema,
+      specialization: optionalNamedRefSchema,
     }),
   })
   .transform(({ _id, createdAt, doctor, condition }) => ({
@@ -90,12 +78,18 @@ export const patientFormSchema = z.object({
     .string()
     .trim()
     .min(1, "Phone is required.")
-    .refine((v) => v.replace(/\D/g, "").length >= 8, "Enter a valid phone number."),
+    .refine(
+      (v) => v.replace(/\D/g, "").length >= 8,
+      "Enter a valid phone number."
+    ),
   email: z
     .string()
     .trim()
     .toLowerCase()
-    .refine((v) => !v || z.email().safeParse(v).success, "Enter a valid email address."),
+    .refine(
+      (v) => !v || z.email().safeParse(v).success,
+      "Enter a valid email address."
+    ),
   birthDate: z
     .string()
     .min(1, "Birth date is required.")

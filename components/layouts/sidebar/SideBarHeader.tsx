@@ -1,8 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
-import { HeartPulse } from "lucide-react";
+import Image from "next/image"
+import Link from "next/link"
+import { HeartPulse } from "lucide-react"
 
-import { SidebarHeader } from "@/components/ui/sidebar";
+import { SidebarHeader } from "@/components/ui/sidebar"
 
 const SideBarHeader = () => {
   return (
@@ -28,7 +28,7 @@ const SideBarHeader = () => {
         />
       </Link>
     </SidebarHeader>
-  );
-};
+  )
+}
 
-export default SideBarHeader;
+export default SideBarHeader
