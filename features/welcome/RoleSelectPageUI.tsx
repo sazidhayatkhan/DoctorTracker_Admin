@@ -69,7 +69,7 @@ const BackgroundImage = () => {
     props: { srcSet: mobileSrcSet, ...mobileProps },
   } = getImageProps({
     ...common,
-    src: "/images/mobile_inital_bg.png",
+    src: "/images/mobile_inital_bg_1.png",
     width: 360,
     height: 720,
   })
